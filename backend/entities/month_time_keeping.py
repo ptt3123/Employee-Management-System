@@ -7,9 +7,10 @@ class MonthTimeKeeping(Base):
 
     id = Column(Integer, primary_key=True)
     month = Column(Integer, nullable=False)
-    working_hours = Column(Integer, nullable=True)
-    working_days = Column(Integer, nullable=True)
-    is_full_attendance = Column(Boolean, nullable=False, default=False)
+    working_hours = Column(Integer, nullable=False)
+    working_days = Column(Integer, nullable=False)
+    is_full_attendance = Column(Boolean, nullable=False)
+    expected_working_days = Column(Integer, nullable=False)
 
     employee_id = Column(
         Integer, ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)
