@@ -1,14 +1,68 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
+import { jwtDecode } from "jwt-decode";
+
+interface JwtPayload {
+  exp: number;
+}
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await fetch("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Login failed.");
+        return;
+      }
+      console.log("Login successful:", data);
+      const token = data.data?.token;
+      if (!token) {
+        setError("No access token received.");
+        return;
+      }
+      
+      // Lưu vào localStorage
+      localStorage.setItem("access_token", token);
+
+      // Decode JWT để kiểm tra hạn
+      const decoded: JwtPayload = jwtDecode(token);
+      const isExpired = decoded.exp * 1000 < Date.now();
+      if (isExpired) {
+        setError("Token expired");
+        localStorage.removeItem("access_token");
+        return;
+      }
+
+      // Điều hướng về trang chủ
+      window.location.href = "/home";
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong.");
+    }
+  };
   return (
     <div className="flex flex-col flex-1">
       <div className="w-full max-w-md pt-10 mx-auto">
@@ -89,7 +143,9 @@ export default function SignInForm() {
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" />
+                  <Input 
+                    onChange={(e) => setEmail(e.target.value)}
+                  placeholder="info@gmail.com" />
                 </div>
                 <div>
                   <Label>
@@ -97,6 +153,7 @@ export default function SignInForm() {
                   </Label>
                   <div className="relative">
                     <Input
+                    onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                     />
@@ -127,7 +184,9 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
+                  <Button className="w-full" size="sm"
+                    onClick={(e) => handleLogin(e)}
+                  >
                     Sign in
                   </Button>
                 </div>

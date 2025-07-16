@@ -20,6 +20,8 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import ManageStaff from './components/ManageStaff/ManageStaff';
 export default function App() {
+  const accessToken = localStorage.getItem("access_token");
+  console.log("Access Token:", accessToken);
   return (
     <>
       <Router>
@@ -27,7 +29,7 @@ export default function App() {
         <Routes>
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            <Route index path="/home" element={<Home />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
