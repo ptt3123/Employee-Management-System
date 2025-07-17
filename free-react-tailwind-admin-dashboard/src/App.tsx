@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -24,7 +24,7 @@ export default function App() {
   console.log("Access Token:", accessToken);
   return (
     <>
-      <Router>
+      
         <ScrollToTop />
         <Routes>
           {/* Dashboard Layout */}
@@ -62,7 +62,7 @@ export default function App() {
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </Router>
+      
     </>
   );
 }
