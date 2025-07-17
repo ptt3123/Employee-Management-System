@@ -27,7 +27,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('name')
     )
-    op.create_table('employee',
+    op.create_table('employee_schemas',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=25), nullable=False),
     sa.Column('password', sa.String(length=100), nullable=False),
@@ -37,7 +37,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('username')
     )
-    op.create_index(op.f('ix_employee_id'), 'employee', ['id'], unique=False)
+    op.create_index(op.f('ix_employee_id'), 'employee_schemas', ['id'], unique=False)
     op.create_table('team',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=25), nullable=False),
@@ -51,7 +51,7 @@ def upgrade() -> None:
     sa.Column('balance', sa.Integer(), nullable=False),
     sa.Column('year', sa.Integer(), nullable=False),
     sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_balance_id'), 'balance', ['id'], unique=False)
@@ -61,7 +61,7 @@ def upgrade() -> None:
     sa.Column('checkin', sa.DateTime(), nullable=True),
     sa.Column('checkout', sa.DateTime(), nullable=True),
     sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('employee_information',
@@ -73,7 +73,7 @@ def upgrade() -> None:
     sa.Column('dob', sa.Date(), nullable=True),
     sa.Column('position', sa.Enum('IT', 'QA', 'BA', 'TESTER', 'PM', name='employeeposition'), nullable=True),
     sa.Column('team_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('employee_id'),
     sa.UniqueConstraint('email'),
@@ -90,8 +90,8 @@ def upgrade() -> None:
     sa.Column('update_date', sa.Date(), nullable=True),
     sa.Column('employee_id', sa.Integer(), nullable=False),
     sa.Column('manager_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['manager_id'], ['employee.id'], ondelete='SET NULL'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['manager_id'], ['employee_schemas.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_leave_request_id'), 'leave_request', ['id'], unique=False)
@@ -102,7 +102,7 @@ def upgrade() -> None:
     sa.Column('working_days', sa.Integer(), nullable=True),
     sa.Column('is_full_attendance', sa.Boolean(), nullable=False),
     sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('salary',
@@ -113,7 +113,7 @@ def upgrade() -> None:
     sa.Column('update_date', sa.DateTime(), nullable=True),
     sa.Column('detail', sa.String(length=255), nullable=True),
     sa.Column('employee_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('employee_id')
     )
     op.create_table('day_timekeeping_black_tag',
@@ -140,7 +140,7 @@ def downgrade() -> None:
     op.drop_table('balance')
     op.drop_index(op.f('ix_team_id'), table_name='team')
     op.drop_table('team')
-    op.drop_index(op.f('ix_employee_id'), table_name='employee')
-    op.drop_table('employee')
+    op.drop_index(op.f('ix_employee_id'), table_name='employee_schemas')
+    op.drop_table('employee_schemas')
     op.drop_table('black_tag')
     # ### end Alembic commands ###
