@@ -5,6 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from cruds.employee_crud import get_current_employee
 from database import get_db
+from enums import EmployeeStatus
 from utils.generate_token import generate_access_token
 from utils.verify_password import verify_password
 
@@ -17,6 +18,8 @@ async def login(
     ):
     employee = await get_current_employee(db,'username', form_data.username)
 
+    if employee.status != EmployeeStatus.ACTIVE:
+        raise HTTPException(status_code=400, detail='Your account is not active.')
     if not employee or not verify_password(form_data.password, employee.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
