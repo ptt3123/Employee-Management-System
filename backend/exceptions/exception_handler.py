@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from exceptions.exceptions import (
     EmployeeNotFoundException,
     InvalidPaginationException,
-    FieldExistsException,
+    FieldValueExistsException,
     UnauthorizedException
 )
 
@@ -46,8 +46,8 @@ def invalid_pagination_handler(request: Request, exc: Exception) -> Response:
         content={'success': False, "error": exc.message}
     )
 
-def fields_exist_handler(request: Request, exc: Exception) -> Response:
-    if not isinstance(exc, FieldExistsException):
+def fields_value_exist_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, FieldValueExistsException):
         logger.error(f"Unexpected exception in fields_exist_handler: {str(exc)}")
         return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
     return JSONResponse(

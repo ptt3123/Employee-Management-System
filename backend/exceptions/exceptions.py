@@ -1,3 +1,8 @@
+from typing import Optional
+
+from pydantic import EmailStr
+
+
 class EmployeeNotFoundException(Exception):
     def __init__(self, message: str = "Can not find employee"):
         self.message = message
@@ -8,9 +13,14 @@ class InvalidPaginationException(Exception):
         self.message = message
         super().__init__(message)
 
-class FieldExistsException(Exception):
-    def __init__(self, message: str = "Field already exists"):
-        self.message = message
+class FieldValueExistsException(Exception):
+    def __init__(self, email: Optional[EmailStr] = None, phone_number: Optional[str] = None):
+        parts = []
+        if email:
+            parts.append(f'Email "{email}"')
+        if phone_number:
+            parts.append(f'Phone number "{phone_number}"')
+        message = " and ".join(parts) + " already exists"
         super().__init__(message)
 
 class UnauthorizedException(Exception):
