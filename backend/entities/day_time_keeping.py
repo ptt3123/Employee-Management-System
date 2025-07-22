@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Date
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Date, Boolean
 from sqlalchemy.orm import relationship
 
 from entities.base import Base
@@ -8,14 +8,13 @@ class DayTimekeeping(Base):
 
     id = Column(Integer, primary_key=True)
     date = Column(Date, nullable=False)
+    shift_start = Column(DateTime, nullable=False)
+    shift_end = Column(DateTime, nullable=False)
     checkin = Column(DateTime, nullable=True)
     checkout = Column(DateTime, nullable=True)
+    is_checkin_late = Column(Boolean, nullable=True)
+    is_checkout_early = Column(Boolean, nullable=True)
+    is_enough_time = Column(Boolean, nullable=True)
 
     employee_id = Column(
         Integer, ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)
-
-    black_tags = relationship(
-        "BlackTag",
-        secondary="day_timekeeping_black_tag",
-        lazy="select"
-    )
