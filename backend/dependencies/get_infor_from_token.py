@@ -4,11 +4,12 @@ from fastapi.security import OAuth2PasswordBearer
 
 from config import settings
 from exceptions.exceptions import UnauthorizedException
+from schemas.token.InforFromToken import InforFromToken
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/employee/login")
 
 
-async def get_infor_from_token(token: str = Depends(oauth2_scheme)):
+async def get_infor_from_token(token: str = Depends(oauth2_scheme)) -> InforFromToken:
     print(f"Received token: {token}")
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
@@ -20,8 +21,9 @@ async def get_infor_from_token(token: str = Depends(oauth2_scheme)):
     except Exception as e:
         raise e
 
-    return {
-        "id": employee_id,
-        "employee_name": payload.get("name"),
-        "employee_role": payload.get("role")
-    }
+    infor_from_token = InforFromToken(
+        id = int(employee_id),
+        employee_name = employee_name,
+        employee_role = employee_role
+    )
+    return infor_from_token

@@ -9,6 +9,7 @@ from dependencies.get_infor_from_token import get_infor_from_token
 from enums import EmployeeStatus
 from exceptions.exceptions import UnauthorizedException
 from schemas.employee_schemas.get_employees import GetEmployees
+from schemas.token.InforFromToken import InforFromToken
 
 get_employees_router = APIRouter()
 
@@ -16,7 +17,7 @@ get_employees_router = APIRouter()
 async def get_employees(
         params_get_employees: GetEmployees,
         db: AsyncSession = Depends(get_db),
-        employee_infor: dict = Depends(get_infor_from_token)
+        employee_infor: InforFromToken = Depends(get_infor_from_token)
     ):
 
     try:

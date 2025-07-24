@@ -7,6 +7,7 @@ from cruds.employee_crud import create_employee_crud
 from database import get_db
 from dependencies.get_admin_role import get_admin_role
 from schemas.employee_schemas.employee_schema import EmployeeCreate
+from schemas.token.InforFromToken import InforFromToken
 from utils.check_exists_field import check_exists_field
 from utils.generate_username import generate_username
 from utils.hash_password import hash_password
@@ -17,7 +18,7 @@ create_employee_router = APIRouter()
 async def create_employee(
         new_employee: EmployeeCreate,
         db: AsyncSession = Depends(get_db),
-        employee_infor: dict = Depends(get_admin_role),
+        employee_infor: InforFromToken = Depends(get_admin_role),
     ):
     try:
         await check_exists_field(
