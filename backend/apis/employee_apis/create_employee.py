@@ -28,7 +28,7 @@ async def create_employee(
         )
 
         username = await generate_username(new_employee.name.strip(), db)
-        password = hash_password(username.strip())
+        password = hash_password('123456')
 
         await create_employee_crud(db, new_employee, username, password)
         return JSONResponse(status_code=201, content={

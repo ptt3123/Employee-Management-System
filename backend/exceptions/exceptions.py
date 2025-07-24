@@ -27,3 +27,13 @@ class UnauthorizedException(Exception):
     def __init__(self, message: str = "Unauthorized"):
         self.message = message
         super().__init__(message)
+
+class UsernameOrPasswordIncorrectException(Exception):
+    def __init__(self, message: str = "Username or password is incorrect"):
+        self.message = message
+        super().__init__(message)
+
+class PasswordIncorrectException(Exception):
+    def __init__(self, message: str = "Password is incorrect"):
+        self.message = message
+        super().__init__(message)
