@@ -29,17 +29,17 @@ def upgrade() -> None:
     op.add_column('day_timekeeping', sa.Column('is_checkin_late', sa.Boolean(), nullable=True))
     op.add_column('day_timekeeping', sa.Column('is_checkout_early', sa.Boolean(), nullable=True))
     op.add_column('day_timekeeping', sa.Column('is_enough_time', sa.Boolean(), nullable=True))
-    op.add_column('employee_schemas', sa.Column('update_date', sa.DateTime(), nullable=True))
-    op.add_column('employee_schemas', sa.Column('name', sa.String(length=50), nullable=False))
-    op.add_column('employee_schemas', sa.Column('email', sa.String(length=50), nullable=False))
-    op.add_column('employee_schemas', sa.Column('phone_number', sa.String(length=10), nullable=False))
-    op.add_column('employee_schemas', sa.Column('address', sa.String(length=100), nullable=True))
-    op.add_column('employee_schemas', sa.Column('dob', sa.Date(), nullable=True))
-    op.add_column('employee_schemas', sa.Column('position', sa.Enum('IT', 'QA', 'BA', 'TESTER', 'PM', name='employeeposition'), nullable=True))
-    op.add_column('employee_schemas', sa.Column('team_id', sa.Integer(), nullable=True))
-    op.create_unique_constraint(None, 'employee_schemas', ['email'])
-    op.create_unique_constraint(None, 'employee_schemas', ['phone_number'])
-    op.create_foreign_key(None, 'employee_schemas', 'team', ['team_id'], ['id'], ondelete='SET NULL')
+    op.add_column('employee', sa.Column('update_date', sa.DateTime(), nullable=True))
+    op.add_column('employee', sa.Column('name', sa.String(length=50), nullable=False))
+    op.add_column('employee', sa.Column('email', sa.String(length=50), nullable=False))
+    op.add_column('employee', sa.Column('phone_number', sa.String(length=10), nullable=False))
+    op.add_column('employee', sa.Column('address', sa.String(length=100), nullable=True))
+    op.add_column('employee', sa.Column('dob', sa.Date(), nullable=True))
+    op.add_column('employee', sa.Column('position', sa.Enum('IT', 'QA', 'BA', 'TESTER', 'PM', name='employeeposition'), nullable=True))
+    op.add_column('employee', sa.Column('team_id', sa.Integer(), nullable=True))
+    op.create_unique_constraint(None, 'employee', ['email'])
+    op.create_unique_constraint(None, 'employee', ['phone_number'])
+    op.create_foreign_key(None, 'employee', 'team', ['team_id'], ['id'], ondelete='SET NULL')
     op.add_column('month_time_keeping', sa.Column('expected_working_days', sa.Integer(), nullable=False))
     op.alter_column('month_time_keeping', 'working_hours',
                existing_type=sa.INTEGER(),
@@ -72,17 +72,17 @@ def downgrade() -> None:
                existing_type=sa.INTEGER(),
                nullable=True)
     op.drop_column('month_time_keeping', 'expected_working_days')
-    op.drop_constraint(None, 'employee_schemas', type_='foreignkey')
-    op.drop_constraint(None, 'employee_schemas', type_='unique')
-    op.drop_constraint(None, 'employee_schemas', type_='unique')
-    op.drop_column('employee_schemas', 'team_id')
-    op.drop_column('employee_schemas', 'position')
-    op.drop_column('employee_schemas', 'dob')
-    op.drop_column('employee_schemas', 'address')
-    op.drop_column('employee_schemas', 'phone_number')
-    op.drop_column('employee_schemas', 'email')
-    op.drop_column('employee_schemas', 'name')
-    op.drop_column('employee_schemas', 'update_date')
+    op.drop_constraint(None, 'employee', type_='foreignkey')
+    op.drop_constraint(None, 'employee', type_='unique')
+    op.drop_constraint(None, 'employee', type_='unique')
+    op.drop_column('employee', 'team_id')
+    op.drop_column('employee', 'position')
+    op.drop_column('employee', 'dob')
+    op.drop_column('employee', 'address')
+    op.drop_column('employee', 'phone_number')
+    op.drop_column('employee', 'email')
+    op.drop_column('employee', 'name')
+    op.drop_column('employee', 'update_date')
     op.drop_column('day_timekeeping', 'is_enough_time')
     op.drop_column('day_timekeeping', 'is_checkout_early')
     op.drop_column('day_timekeeping', 'is_checkin_late')
@@ -97,7 +97,7 @@ def downgrade() -> None:
     sa.Column('dob', sa.DATE(), autoincrement=False, nullable=True),
     sa.Column('position', postgresql.ENUM('IT', 'QA', 'BA', 'TESTER', 'PM', name='employeeposition'), autoincrement=False, nullable=True),
     sa.Column('team_id', sa.INTEGER(), autoincrement=False, nullable=True),
-    sa.ForeignKeyConstraint(['employee_id'], ['employee_schemas.id'], name=op.f('employee_information_employee_id_fkey'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['employee_id'], ['employee.id'], name=op.f('employee_information_employee_id_fkey'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['team_id'], ['team.id'], name=op.f('employee_information_team_id_fkey'), ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('employee_id', name=op.f('employee_information_pkey')),
     sa.UniqueConstraint('email', name=op.f('employee_information_email_key'), postgresql_include=[], postgresql_nulls_not_distinct=False),
