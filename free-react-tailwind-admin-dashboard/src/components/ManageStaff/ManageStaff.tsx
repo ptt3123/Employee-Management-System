@@ -1,92 +1,108 @@
 import React, { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
-import { useModal } from "../../hooks/useModal";
-import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import {
-  createStaff,
-  deleteStaff,
-  getAllStaff,
-  updateStaff,
-} from "../../api/staffApi";
+import { Modal } from "../ui/modal";
+import { useModal } from "../../hooks/useModal";
 import { Staff } from "../../types/staff";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import {faEraser} from "@fortawesome/free-solid-svg-icons";
+
+// 🧪 Dữ liệu giả định ~20 nhân viên
+const MOCK_STAFF: Staff[] = Array.from({ length: 20 }).map((_, index) => ({
+  _id: `staff-${index}`,
+  username: `user${index}`,
+  password: `pass${index}`,
+  email: `user${index}@example.com`,
+  phoneNumber: `012345678${index}`,
+  name: `User ${index}`,
+}));
 
 export default function ManageStaff() {
   const [staffList, setStaffList] = useState<Staff[]>([]);
-  const [formData, setFormData] = useState<Omit<Staff, "_id">>({
+  const [formData, setFormData] = useState({
     username: "",
     password: "",
     email: "",
     phoneNumber: "",
-    firstName: "",
-    lastName: "",
+    name: "",
   });
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof Staff, string>>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
+  // 🔍 Tìm kiếm và phân trang
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchField, setSearchField] = useState<"username" | "password" | "email" | "phoneNumber" | "name">("username");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   useEffect(() => {
-    loadStaffList();
+    setStaffList(MOCK_STAFF);
   }, []);
 
-  const loadStaffList = async () => {
-    try {
-      const results = await getAllStaff();
-      setStaffList(results);
-    } catch {
-      setErrorMessage("Không thể tải danh sách nhân viên.");
+  // 🔎 Lọc nhân viên theo field và giá trị tìm kiếm
+  const filteredStaff = staffList.filter((staff) => {
+    if (searchField === "name") {
+      const fullName = staff.name.toLowerCase();
+      return fullName.includes(searchTerm.toLowerCase());
     }
-  };
+    return staff[searchField]?.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setFieldErrors({ ...fieldErrors, [e.target.name]: undefined });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setFieldErrors({});
 
+    
+
+    const staffToSave: Staff = {
+      _id: editingStaffId ?? `staff-${Date.now()}`,
+      username: formData.username,
+      password: formData.password,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber,
+      name: formData.name,
+    };
+
     try {
       if (editingStaffId) {
-        await updateStaff(editingStaffId, formData);
+        setStaffList((prev) =>
+          prev.map((s) => (s._id === editingStaffId ? staffToSave : s))
+        );
       } else {
-        await createStaff(formData as Staff);
+        setStaffList((prev) => [...prev, staffToSave]);
       }
-
-      await loadStaffList();
       resetForm();
-    } catch (err: any) {
-      if (typeof err === "object" && err !== null && !("message" in err)) {
-        setFieldErrors(err);
-      } else if (err instanceof Error) {
-        setErrorMessage(err.message);
-      } else if (typeof err === "string") {
-        setErrorMessage(err);
-      } else {
-        setErrorMessage("Đã xảy ra lỗi không xác định.");
-      }
+    } catch {
+      setErrorMessage("Lỗi không xác định.");
     }
   };
 
-  const handleDelete = async (id?: string) => {
-    if (!id) return;
-    try {
-      await deleteStaff(id);
-      await loadStaffList();
-    } catch (err: any) {
-      setErrorMessage(err.message || "Xoá thất bại");
-    }
+  const handleDelete = (id: string) => {
+    setStaffList((prev) => prev.filter((s) => s._id !== id));
   };
 
   const handleEdit = (staff: Staff) => {
-    const { _id, ...rest } = staff;
-    setFormData(rest);
-    setEditingStaffId(_id);
+    setFormData({
+      username: staff.username ?? "",
+      password: staff.password ?? "",
+      email: staff.email ?? "",
+      phoneNumber: staff.phoneNumber ?? "",
+      name: staff.name ?? "",
+    });
+
+    setEditingStaffId(staff._id || null);
     setFieldErrors({});
     setErrorMessage(null);
     openModal();
@@ -98,8 +114,7 @@ export default function ManageStaff() {
       password: "",
       email: "",
       phoneNumber: "",
-      firstName: "",
-      lastName: "",
+      name: "",
     });
     setFieldErrors({});
     setErrorMessage(null);
@@ -111,28 +126,50 @@ export default function ManageStaff() {
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Manage Staff</h1>
 
-      <button
-        className="mb-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-        onClick={() => {
-          resetForm();
-          openModal();
-        }}
-      >
-        Add Staff
-      </button>
+      {/* 🔍 Thanh tìm kiếm */}
+      <div className="flex flex-cols justify-between items-center mb-4">
+        <div className="flex justify-end gap-2 mb-4 items-center">
+          <select
+            value={searchField}
+            onChange={(e) => setSearchField(e.target.value as any)}
+            className="border-2 border-gray-700 px-2 py-1 rounded-lg h-11"
+          >
+            <option value="username">Username</option>
+            <option value="password">Password</option>
+            <option value="email">Email</option>
+            <option value="phoneNumber">Phone</option>
+            <option value="name">Name</option>
+          </select>
+          <Input
+            type="text"
+            placeholder={`Tìm kiếm theo ${searchField}`}
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="max-w-sm border-2 border-gray-700 px-2"
+          />
+        </div>
 
+        <button
+          className="mb-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          onClick={() => {
+            resetForm();
+            openModal();
+          }}
+        >
+          Add Staff
+        </button>
+      </div>
+
+      {/* 🪟 Modal thêm/sửa nhân viên */}
       <Modal isOpen={isOpen} onClose={resetForm} className="max-w-[700px] m-4">
         <div className="relative w-full p-4 overflow-y-auto bg-white rounded-3xl dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
             <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               {editingStaffId ? "Edit Staff" : "Add Staff Information"}
             </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              {editingStaffId
-                ? "Update existing staff details."
-                : "Add a new staff member to the system."}
-            </p>
-
             {errorMessage && (
               <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
                 {errorMessage}
@@ -147,8 +184,7 @@ export default function ManageStaff() {
                 { label: "Password", name: "password", type: "password" },
                 { label: "Email", name: "email" },
                 { label: "Phone Number", name: "phoneNumber" },
-                { label: "First Name", name: "firstName" },
-                { label: "Last Name", name: "lastName" },
+                { label: "Name", name: "name" },
               ].map(({ label, name, type }) => (
                 <div key={name}>
                   <Label>{label}</Label>
@@ -158,9 +194,9 @@ export default function ManageStaff() {
                     value={(formData as any)[name]}
                     onChange={handleChange}
                   />
-                  {fieldErrors[name as keyof Staff] && (
+                  {fieldErrors[name] && (
                     <p className="text-red-500 text-sm mt-1">
-                      {fieldErrors[name as keyof Staff]}
+                      {fieldErrors[name]}
                     </p>
                   )}
                 </div>
@@ -179,49 +215,69 @@ export default function ManageStaff() {
         </div>
       </Modal>
 
-      {errorMessage && (
-        <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-          {errorMessage}
-        </div>
-      )}
-
+      {/* 📋 Bảng nhân viên */}
       <table className="min-w-full border">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border px-4 py-2">Username</th>
-            <th className="border px-4 py-2">Email</th>
-            <th className="border px-4 py-2">Phone</th>
-            <th className="border px-4 py-2">First Name</th>
-            <th className="border px-4 py-2">Last Name</th>
-            <th className="border px-4 py-2">Actions</th>
+            <th className="border px-4 py-2 text-xl">STT</th>
+            <th className="border px-4 py-2 text-xl">Username</th>
+            <th className="border px-4 py-2 text-xl">Email</th>
+            <th className="border px-4 py-2 text-xl">Phone</th>
+            <th className="border px-4 py-2 text-xl">Name</th>
+            <th className="border px-4 py-2 text-xl">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {staffList.map((staff) => (
-            <tr key={staff._id}>
-              <td className="border px-4 py-2">{staff.username}</td>
-              <td className="border px-4 py-2">{staff.email}</td>
-              <td className="border px-4 py-2">{staff.phoneNumber}</td>
-              <td className="border px-4 py-2">{staff.firstName}</td>
-              <td className="border px-4 py-2">{staff.lastName}</td>
-              <td className="border px-4 py-2 flex gap-2">
-                <button
-                  onClick={() => handleEdit(staff)}
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(staff._id)}
-                  className="text-red-500 hover:underline text-sm"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </td>
-            </tr>
-          ))}
+          {filteredStaff
+            .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+            .map((staff, index) => (
+              <tr key={staff._id}>
+                <td className="text-center border px-4 py-2 text-xl">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </td>
+                <td className="text-center border px-4 py-2 text-xl">{staff.username}</td>
+                <td className="text-center border px-4 py-2 text-xl">{staff.email}</td>
+                <td className="text-center border px-4 py-2 text-xl">{staff.phoneNumber}</td>
+                <td className="text-center border px-4 py-2 text-xl">{staff.name}</td>
+                <td className="text-center border px-4 py-2 flex gap-2 justify-center ">
+                  <button
+                    onClick={() => handleEdit(staff)}
+                    className="text-blue-600 hover:underline text-xl"
+                  >
+                    <FontAwesomeIcon icon={faPenToSquare} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(staff._id!)}
+                    className="text-red-500 hover:underline text-xl"
+                  >
+                    <FontAwesomeIcon icon={faEraser} />
+                  </button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
+
+      {/* 📄 Phân trang */}
+      <div className="flex justify-center mt-4 gap-2">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          disabled={currentPage === 1}
+        >
+          Trước
+        </button>
+        <span className="px-3 py-1">
+          {currentPage} / {totalPages}
+        </span>
+        <button
+          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+          className="px-3 py-1 border rounded disabled:opacity-50"
+          disabled={currentPage === totalPages}
+        >
+          Sau
+        </button>
+      </div>
     </div>
   );
 }
