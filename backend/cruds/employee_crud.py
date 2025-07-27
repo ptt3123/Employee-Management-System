@@ -89,12 +89,14 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
         total_employees = (await db.execute(total_employees_query)).scalar()
         total_pages = (total_employees + params.page_size - 1) // params.page_size
 
-        if hasattr(Employee, params.sort_by) and hasattr(Employee, params.sort_value):
+        if hasattr(Employee, params.sort_by):
             sort_column = getattr(Employee, params.sort_by)
             if params.sort_value == SortValue.DESC:
                 base_query = base_query.order_by(sort_column.desc())
-            else :
+            elif params.sort_value == SortValue.ASC:
                 base_query = base_query.order_by(sort_column.asc())
+            else:
+                base_query = base_query.order_by(sort_column.desc())
 
         employees = (
             await db.execute(

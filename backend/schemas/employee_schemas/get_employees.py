@@ -10,7 +10,7 @@ class GetEmployees(BaseModel):
     team_id: Optional[int] = None
     search_by: Optional[str] = None
     search_value: Optional[str] = None
-    sort_by: Optional[str] = 'id'
+    sort_by: Optional[str] = 'name'
     sort_value: Optional[SortValue] = SortValue.DESC
     page: int = 1
     page_size: int = 10
