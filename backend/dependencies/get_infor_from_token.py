@@ -1,5 +1,5 @@
 from fastapi import Depends
-from jose import jwt
+from jose import jwt, ExpiredSignatureError, JWTError
 from fastapi.security import OAuth2PasswordBearer
 
 from config import settings
@@ -18,6 +18,10 @@ async def get_infor_from_token(token: str = Depends(oauth2_scheme)) -> InforFrom
         employee_role = payload.get("role")
         if employee_id is None or employee_name is None or employee_role is None:
             raise UnauthorizedException
+    except ExpiredSignatureError:
+        raise UnauthorizedException("Token has expired. Please login again.")
+    except JWTError:
+        raise UnauthorizedException("Invalid token")
     except Exception as e:
         raise e
 

@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr
 from datetime import date
 
-from enums import EmployeeRole, EmployeeStatus
+from enums import EmployeeRole, EmployeeStatus, EmployeePosition
 
 
 class EmployeeBase(BaseModel):
@@ -29,6 +29,7 @@ class EmployeeUpdate(EmployeeBase):
     dob: Optional[date] = None
     address: Optional[str] = None
     role: Optional[EmployeeRole] = None
+    position: Optional[EmployeePosition] = None
     password: Optional[constr(min_length=6, max_length=12)] = None
     status: Optional[EmployeeStatus] = None
     team_id: Optional[int] = None

@@ -8,6 +8,15 @@ class EmployeeNotFoundException(Exception):
         self.message = message
         super().__init__(message)
 
+class ObjectNotFoundException(Exception):
+    def __init__(self, not_found_object: Optional[str] = None):
+        if not_found_object is not None:
+            self.not_found_object = not_found_object
+            message = f"Object {not_found_object} not found"
+        else: message = "not found"
+
+        super().__init__(message)
+
 class InvalidPaginationException(Exception):
     def __init__(self, message: str = "Page and page_size must be greater than 0"):
         self.message = message

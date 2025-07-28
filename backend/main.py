@@ -1,5 +1,4 @@
-# app run here
-import logging
+
 from fastapi import FastAPI
 from sqlalchemy.exc import SQLAlchemyError
 

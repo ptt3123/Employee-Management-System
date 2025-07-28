@@ -1,4 +1,3 @@
-
 from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -75,6 +74,7 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
             ).join(Team, Employee.team_id == Team.id, isouter=True)
         )
 
+        base_query = base_query.where(Employee.status == params.employee_status)
         if params.search_by and params.search_value:
             if hasattr(Employee, params.search_by):
                 column_attr = getattr(Employee, params.search_by)
