@@ -1,0 +1,18 @@
+from fastapi import APIRouter
+
+from apis.day_time_keeping_apis.check_if_registed_dtk import check_if_registered_dtk_router
+from apis.day_time_keeping_apis.create_dtk_regis_form import create_dtk_regis_form_router
+from apis.day_time_keeping_apis.checkin import checkin_router
+from apis.day_time_keeping_apis.checkout import checkout_router
+from apis.day_time_keeping_apis.get_employee_dtk_history import get_employee_dtk_history_router
+from apis.day_time_keeping_apis.get_my_dtk_history import get_my_dtk_history_router
+
+dtk_router = APIRouter(prefix="/dtk", tags=["Date_time_keeping"])
+
+dtk_router.include_router(create_dtk_regis_form_router)
+
+dtk_router.include_router(check_if_registered_dtk_router)
+dtk_router.include_router(checkin_router)
+dtk_router.include_router(checkout_router)
+dtk_router.include_router(get_employee_dtk_history_router)
+dtk_router.include_router(get_my_dtk_history_router)
