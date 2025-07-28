@@ -23,7 +23,8 @@ app.add_exception_handler(InvalidCheckinCheckoutException, invalid_checkin_check
 app.add_exception_handler(InvalidPaginationException, invalid_pagination_handler)
 app.add_exception_handler(FieldValueExistsException, fields_value_exist_handler)
 app.add_exception_handler(UnauthorizedException, unauthorized_exception_handler)
+app.add_exception_handler(UsernameOrPasswordIncorrectException, username_password_incorrect_handler)
+app.add_exception_handler(PasswordIncorrectException, password_incorrect_handler)
 app.add_exception_handler(Exception, fallback_exception_handler)
 
-app.include_router(router)
 app.include_router(router)
