@@ -1,11 +1,14 @@
 from fastapi import HTTPException
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
-from entities import Employee, Team
+from entities import Employee, Team, DayTimekeeping
 from enums import SortValue
 from exceptions.exceptions import InvalidPaginationException, EmployeeNotFoundException
 from schemas.employee_schemas.employee_schema import EmployeeCreate, EmployeeUpdate
 from schemas.employee_schemas.get_employees import GetEmployees
+from datetime import date
+
+from schemas.employee_schemas.get_employees_respone import EmployeesResponse
 
 
 async def get_current_employee(db: AsyncSession, field: str, value):
@@ -17,6 +20,7 @@ async def get_current_employee(db: AsyncSession, field: str, value):
         stmt = select(Employee).where(column == value)
         result = await db.execute(stmt)
         employee = result.scalar_one_or_none()
+        if employee is None: raise EmployeeNotFoundException
         return employee
     except Exception as e:
         print(e)
@@ -70,10 +74,19 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
                 Employee.dob,
                 Employee.position,
                 Employee.username,
-                Team.name.label('team_name')
-            ).join(Team, Employee.team_id == Team.id, isouter=True)
+                Team.name.label('team_name'),
+                DayTimekeeping.checkin.label('checkin'),
+                DayTimekeeping.checkout.label('checkout')
+            )
+            .join(Team, Employee.team_id == Team.id, isouter=True)
+            .join(
+                DayTimekeeping,
+                (DayTimekeeping.employee_id == Employee.id)
+                & (DayTimekeeping.date == date.today()),
+                isouter=True)
         )
 
+        print(date.today())
         base_query = base_query.where(Employee.status == params.employee_status)
         if params.search_by and params.search_value:
             if hasattr(Employee, params.search_by):
@@ -103,7 +116,15 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
                 base_query.offset(skip).limit(params.page_size)
             )
         ).all()
-        employees_list = [dict(row._mapping) for row in employees]
+
+        if not employees: raise EmployeeNotFoundException
+        employees_response = []
+        for row in employees:
+            new_employee_response = EmployeesResponse(
+                id=row.id,
+                team_id=row.team_id,
+
+            )
         print(base_query.compile(compile_kwargs={"literal_binds": True}))
         return {
             "current_page": params.page,
