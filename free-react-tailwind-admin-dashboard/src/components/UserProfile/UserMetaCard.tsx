@@ -1,8 +1,17 @@
 import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
+
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    {...props}
+    className={`border px-3 py-2 rounded-lg w-full ${props.className || ""}`}
+  />
+);
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block mb-1 font-medium">{children}</label>
+);
 
 export default function UserMetaCard() {
   const { isOpen, openModal, closeModal } = useModal();

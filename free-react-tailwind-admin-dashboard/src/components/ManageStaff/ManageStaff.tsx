@@ -1,15 +1,26 @@
+// ✅ Đã chỉnh sửa: bỏ role, create_date, update_date + hiển thị đầy đủ các cột còn lại từ bảng employee
 import React, { useEffect, useState } from "react";
 import Button from "../ui/button/Button";
-import Input from "../form/input/InputField";
-import Label from "../form/Label";
 import { Modal } from "../ui/modal";
 import { useModal } from "../../hooks/useModal";
 import { Staff } from "../../types/staff";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import {faEraser} from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faEraser } from "@fortawesome/free-solid-svg-icons";
 
-// 🧪 Dữ liệu giả định ~20 nhân viên
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input {...props} className={`border px-3 py-2 rounded-lg w-full ${props.className || ""}`} />
+);
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block mb-1 font-medium">{children}</label>
+);
+
+const STAFF_STATUS = [
+  { label: "Đang làm việc", value: "working" },
+  { label: "Tạm nghỉ", value: "inactive" },
+  { label: "Nghỉ việc", value: "resigned" },
+];
+
 const MOCK_STAFF: Staff[] = Array.from({ length: 20 }).map((_, index) => ({
   _id: `staff-${index}`,
   username: `user${index}`,
@@ -17,6 +28,11 @@ const MOCK_STAFF: Staff[] = Array.from({ length: 20 }).map((_, index) => ({
   email: `user${index}@example.com`,
   phoneNumber: `012345678${index}`,
   name: `User ${index}`,
+  address: `123 đường ABC`,
+  dob: "1990-01-01",
+  position: "developer",
+  status: "working",
+  teamId: `${index % 3 + 1}`,
 }));
 
 export default function ManageStaff() {
@@ -27,15 +43,19 @@ export default function ManageStaff() {
     email: "",
     phoneNumber: "",
     name: "",
+    address: "",
+    dob: "",
+    position: "",
+    status: "working",
+    teamId: "",
   });
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { isOpen, openModal, closeModal } = useModal();
 
-  // 🔍 Tìm kiếm và phân trang
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchField, setSearchField] = useState<"username" | "password" | "email" | "phoneNumber" | "name">("username");
+  const [searchField, setSearchField] = useState<"username" | "email" | "phoneNumber" | "name">("username");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -43,18 +63,13 @@ export default function ManageStaff() {
     setStaffList(MOCK_STAFF);
   }, []);
 
-  // 🔎 Lọc nhân viên theo field và giá trị tìm kiếm
   const filteredStaff = staffList.filter((staff) => {
-    if (searchField === "name") {
-      const fullName = staff.name.toLowerCase();
-      return fullName.includes(searchTerm.toLowerCase());
-    }
     return staff[searchField]?.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const totalPages = Math.ceil(filteredStaff.length / itemsPerPage);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setFieldErrors({ ...fieldErrors, [e.target.name]: undefined });
   };
@@ -64,22 +79,14 @@ export default function ManageStaff() {
     setErrorMessage(null);
     setFieldErrors({});
 
-    
-
     const staffToSave: Staff = {
       _id: editingStaffId ?? `staff-${Date.now()}`,
-      username: formData.username,
-      password: formData.password,
-      email: formData.email,
-      phoneNumber: formData.phoneNumber,
-      name: formData.name,
+      ...formData,
     };
 
     try {
       if (editingStaffId) {
-        setStaffList((prev) =>
-          prev.map((s) => (s._id === editingStaffId ? staffToSave : s))
-        );
+        setStaffList((prev) => prev.map((s) => (s._id === editingStaffId ? staffToSave : s)));
       } else {
         setStaffList((prev) => [...prev, staffToSave]);
       }
@@ -100,8 +107,12 @@ export default function ManageStaff() {
       email: staff.email ?? "",
       phoneNumber: staff.phoneNumber ?? "",
       name: staff.name ?? "",
+      address: staff.address ?? "",
+      dob: staff.dob ?? "",
+      position: staff.position ?? "",
+      status: staff.status ?? "working",
+      teamId: staff.teamId?.toString() ?? "",
     });
-
     setEditingStaffId(staff._id || null);
     setFieldErrors({});
     setErrorMessage(null);
@@ -115,6 +126,11 @@ export default function ManageStaff() {
       email: "",
       phoneNumber: "",
       name: "",
+      address: "",
+      dob: "",
+      position: "",
+      status: "working",
+      teamId: "",
     });
     setFieldErrors({});
     setErrorMessage(null);
@@ -125,17 +141,14 @@ export default function ManageStaff() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Manage Staff</h1>
-
-      {/* 🔍 Thanh tìm kiếm */}
-      <div className="flex flex-cols justify-between items-center mb-4">
-        <div className="flex justify-end gap-2 mb-4 items-center">
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-2 items-center">
           <select
             value={searchField}
             onChange={(e) => setSearchField(e.target.value as any)}
             className="border-2 border-gray-700 px-2 py-1 rounded-lg h-11"
           >
             <option value="username">Username</option>
-            <option value="password">Password</option>
             <option value="email">Email</option>
             <option value="phoneNumber">Phone</option>
             <option value="name">Name</option>
@@ -153,7 +166,7 @@ export default function ManageStaff() {
         </div>
 
         <button
-          className="mb-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
           onClick={() => {
             resetForm();
             openModal();
@@ -163,68 +176,60 @@ export default function ManageStaff() {
         </button>
       </div>
 
-      {/* 🪟 Modal thêm/sửa nhân viên */}
-      <Modal isOpen={isOpen} onClose={resetForm} className="max-w-[700px] m-4">
-        <div className="relative w-full p-4 overflow-y-auto bg-white rounded-3xl dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              {editingStaffId ? "Edit Staff" : "Add Staff Information"}
-            </h4>
-            {errorMessage && (
-              <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-4 text-sm">
-                {errorMessage}
-              </div>
-            )}
-          </div>
+      <Modal isOpen={isOpen} onClose={resetForm} className="max-w-[800px] m-4">
+        <div className="p-6 bg-white rounded-xl dark:bg-gray-900">
+          <h4 className="mb-4 text-2xl font-semibold">{editingStaffId ? "Edit Staff" : "Add Staff"}</h4>
+          {errorMessage && <div className="text-red-600 mb-4">{errorMessage}</div>}
 
-          <form onSubmit={handleSubmit} className="flex flex-col">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2 px-2">
-              {[
-                { label: "Username", name: "username" },
-                { label: "Password", name: "password", type: "password" },
-                { label: "Email", name: "email" },
-                { label: "Phone Number", name: "phoneNumber" },
-                { label: "Name", name: "name" },
-              ].map(({ label, name, type }) => (
-                <div key={name}>
-                  <Label>{label}</Label>
-                  <Input
-                    name={name}
-                    type={type || "text"}
-                    value={(formData as any)[name]}
-                    onChange={handleChange}
-                  />
-                  {fieldErrors[name] && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {fieldErrors[name]}
-                    </p>
-                  )}
-                </div>
-              ))}
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {["username", "password", "email", "phoneNumber", "name", "address", "position", "dob", "teamId"].map((name) => (
+              <div key={name}>
+                <Label>{name}</Label>
+                <Input
+                  name={name}
+                  type={name === "password" ? "password" : name === "dob" ? "date" : "text"}
+                  value={(formData as any)[name]}
+                  onChange={handleChange}
+                />
+              </div>
+            ))}
+
+            <div>
+              <Label>Trạng thái</Label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border px-3 py-2 rounded-lg"
+              >
+                {STAFF_STATUS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
             </div>
 
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={resetForm} type="button">
-                Close
-              </Button>
-              <Button size="sm" type="submit">
-                {editingStaffId ? "Update" : "Save"}
-              </Button>
+            <div className="lg:col-span-2 flex justify-end gap-2 mt-6">
+              <Button variant="outline" type="button" onClick={resetForm}>Close</Button>
+              <Button type="submit">{editingStaffId ? "Update" : "Save"}</Button>
             </div>
           </form>
         </div>
       </Modal>
 
-      {/* 📋 Bảng nhân viên */}
       <table className="min-w-full border">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border px-4 py-2 text-xl">STT</th>
-            <th className="border px-4 py-2 text-xl">Username</th>
-            <th className="border px-4 py-2 text-xl">Email</th>
-            <th className="border px-4 py-2 text-xl">Phone</th>
-            <th className="border px-4 py-2 text-xl">Name</th>
-            <th className="border px-4 py-2 text-xl">Actions</th>
+            <th className="border px-2 py-1 text-sm">STT</th>
+            <th className="border px-2 py-1 text-sm">Username</th>
+            <th className="border px-2 py-1 text-sm">Email</th>
+            <th className="border px-2 py-1 text-sm">Phone</th>
+            <th className="border px-2 py-1 text-sm">Name</th>
+            <th className="border px-2 py-1 text-sm">Address</th>
+            <th className="border px-2 py-1 text-sm">DOB</th>
+            <th className="border px-2 py-1 text-sm">Position</th>
+            <th className="border px-2 py-1 text-sm">Team</th>
+            <th className="border px-2 py-1 text-sm">Status</th>
+            <th className="border px-2 py-1 text-sm">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -232,24 +237,38 @@ export default function ManageStaff() {
             .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
             .map((staff, index) => (
               <tr key={staff._id}>
-                <td className="text-center border px-4 py-2 text-xl">
-                  {(currentPage - 1) * itemsPerPage + index + 1}
-                </td>
-                <td className="text-center border px-4 py-2 text-xl">{staff.username}</td>
-                <td className="text-center border px-4 py-2 text-xl">{staff.email}</td>
-                <td className="text-center border px-4 py-2 text-xl">{staff.phoneNumber}</td>
-                <td className="text-center border px-4 py-2 text-xl">{staff.name}</td>
-                <td className="text-center border px-4 py-2 flex gap-2 justify-center ">
-                  <button
-                    onClick={() => handleEdit(staff)}
-                    className="text-blue-600 hover:underline text-xl"
+                <td className="text-center border px-2 py-1">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="text-center border px-2 py-1">{staff.username}</td>
+                <td className="text-center border px-2 py-1">{staff.email}</td>
+                <td className="text-center border px-2 py-1">{staff.phoneNumber}</td>
+                <td className="text-center border px-2 py-1">{staff.name}</td>
+                <td className="text-center border px-2 py-1">{staff.address}</td>
+                <td className="text-center border px-2 py-1">{staff.dob}</td>
+                <td className="text-center border px-2 py-1">{staff.position}</td>
+                <td className="text-center border px-2 py-1">{staff.teamId}</td>
+                <td className="text-center border px-2 py-1">
+                  <select
+                    value={staff.status}
+                    onChange={e => {
+                      const newStatus = e.target.value as Staff["status"];
+                      setStaffList(prev =>
+                        prev.map(s =>
+                          s._id === staff._id ? { ...s, status: newStatus } : s
+                        )
+                      );
+                    }}
+                    className="border rounded px-2 py-1"
                   >
+                    {STAFF_STATUS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </td>
+                <td className="text-center border px-2 py-1">
+                  <button onClick={() => handleEdit(staff)} className="text-blue-600 mr-2">
                     <FontAwesomeIcon icon={faPenToSquare} />
                   </button>
-                  <button
-                    onClick={() => handleDelete(staff._id!)}
-                    className="text-red-500 hover:underline text-xl"
-                  >
+                  <button onClick={() => handleDelete(staff._id!)} className="text-red-500">
                     <FontAwesomeIcon icon={faEraser} />
                   </button>
                 </td>
@@ -258,25 +277,10 @@ export default function ManageStaff() {
         </tbody>
       </table>
 
-      {/* 📄 Phân trang */}
       <div className="flex justify-center mt-4 gap-2">
-        <button
-          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-          disabled={currentPage === 1}
-        >
-          Trước
-        </button>
-        <span className="px-3 py-1">
-          {currentPage} / {totalPages}
-        </span>
-        <button
-          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-          disabled={currentPage === totalPages}
-        >
-          Sau
-        </button>
+        <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1}>Trước</button>
+        <span>{currentPage} / {totalPages}</span>
+        <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages}>Sau</button>
       </div>
     </div>
   );

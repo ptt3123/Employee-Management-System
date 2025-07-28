@@ -1,9 +1,34 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block mb-1 font-medium">{children}</label>
+);
+
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    {...props}
+    className={`border px-3 py-2 rounded-lg w-full ${props.className || ""}`}
+  />
+);
+
+const Checkbox = ({
+  checked,
+  onChange,
+  className,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  className?: string;
+}) => (
+  <input
+    type="checkbox"
+    checked={checked}
+    onChange={(e) => onChange(e.target.checked)}
+    className={className || "w-5 h-5"}
+  />
+);
 
 export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);

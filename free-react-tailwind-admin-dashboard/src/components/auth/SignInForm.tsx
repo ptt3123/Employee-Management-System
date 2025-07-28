@@ -1,11 +1,36 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
-import Label from "../form/Label";
-import Input from "../form/input/InputField";
-import Checkbox from "../form/input/Checkbox";
 import Button from "../ui/button/Button";
 import { jwtDecode } from "jwt-decode";
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <label className="block mb-1 font-medium">{children}</label>
+);
+
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  <input
+    {...props}
+    className={`border px-3 py-2 rounded-lg w-full ${props.className || ""}`}
+  />
+);
+
+const Checkbox = ({
+  checked,
+  onChange,
+  className,
+}: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  className?: string;
+}) => (
+  <input
+    type="checkbox"
+    checked={checked}
+    onChange={(e) => onChange(e.target.checked)}
+    className={className || "w-5 h-5"}
+  />
+);
 
 interface JwtPayload {
   exp: number;
@@ -43,7 +68,7 @@ export default function SignInForm() {
         setError("No access token received.");
         return;
       }
-      
+
       // Lưu vào localStorage
       localStorage.setItem("access_token", token);
 
@@ -143,9 +168,10 @@ export default function SignInForm() {
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input 
+                  <Input
                     onChange={(e) => setEmail(e.target.value)}
-                  placeholder="info@gmail.com" />
+                    placeholder="info@gmail.com"
+                  />
                 </div>
                 <div>
                   <Label>
@@ -153,7 +179,7 @@ export default function SignInForm() {
                   </Label>
                   <div className="relative">
                     <Input
-                    onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => setPassword(e.target.value)}
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
                     />
@@ -184,7 +210,9 @@ export default function SignInForm() {
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm"
+                  <Button
+                    className="w-full"
+                    size="sm"
                     onClick={(e) => handleLogin(e)}
                   >
                     Sign in
