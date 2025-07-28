@@ -11,7 +11,7 @@ class GetEmployees(BaseModel):
     search_by: Optional[str] = None
     search_value: Optional[str] = None
     sort_by: Optional[str] = 'name'
-    sort_value: Optional[SortValue] = SortValue.DESC
+    sort_value: Optional[SortValue] = SortValue.ASC
     page: int = 1
     page_size: int = 10
 

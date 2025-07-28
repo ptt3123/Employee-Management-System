@@ -1,4 +1,7 @@
+from tabnanny import check
+
 from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from entities import Employee, Team, DayTimekeeping
@@ -20,7 +23,7 @@ async def get_current_employee(db: AsyncSession, field: str, value):
         stmt = select(Employee).where(column == value)
         result = await db.execute(stmt)
         employee = result.scalar_one_or_none()
-        if employee is None: raise EmployeeNotFoundException
+
         return employee
     except Exception as e:
         print(e)
@@ -88,6 +91,7 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
 
         print(date.today())
         base_query = base_query.where(Employee.status == params.employee_status)
+
         if params.search_by and params.search_value:
             if hasattr(Employee, params.search_by):
                 column_attr = getattr(Employee, params.search_by)
@@ -118,19 +122,35 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
         ).all()
 
         if not employees: raise EmployeeNotFoundException
+
         employees_response = []
         for row in employees:
+            is_working = False
+
+            if row.checkin and not row.checkout:
+                is_working = True
             new_employee_response = EmployeesResponse(
                 id=row.id,
                 team_id=row.team_id,
-
+                name=row.name,
+                email=row.email,
+                phone_number=row.phone_number,
+                status=row.status,
+                address=row.address,
+                dob=row.dob,
+                position=row.position,
+                username=row.username,
+                team_name=row.team_name,
+                is_working = bool(row.checkin and not row.checkout)
             )
-        print(base_query.compile(compile_kwargs={"literal_binds": True}))
+
+            employees_response.append(new_employee_response)
+
         return {
             "current_page": params.page,
             "total_pages": total_pages,
             "total_employees": total_employees,
-            "employees": employees_list
+            "employees": [jsonable_encoder(row) for row in employees_response]
         }
 
     except Exception as e:

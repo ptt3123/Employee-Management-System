@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import JSONResponse
 
 from cruds.employee_crud import update_employee_crud
 from database import get_db
@@ -21,9 +22,12 @@ async def admin_update_employee(
     try:
         await update_employee_crud(db, employee_id, update_employee_infor)
 
-        return {
-            "success": True,
-            "message": f"Employee {employee_id} has been updated."
-        }
+        return JSONResponse(
+            status_code=200,
+            content={
+                'success': True,
+                'message': 'update employee successfully'
+            }
+        )
     except Exception as e:
         raise e

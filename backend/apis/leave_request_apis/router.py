@@ -1,0 +1,17 @@
+from fastapi import APIRouter
+
+from apis.leave_request_apis.admin_get_request import add_leave_request_router
+from apis.leave_request_apis.create_request import create_request_router
+from apis.leave_request_apis.sent_request import sent_request_router
+from apis.leave_request_apis.staff_get_request import staff_get_request_router
+from apis.leave_request_apis.staff_get_requests import staff_get_requests_router
+from apis.leave_request_apis.admin_get_requests import admin_get_requests_router
+
+leave_request_router = APIRouter(prefix="/leave-request", tags=["Leave Request"])
+
+leave_request_router.include_router(create_request_router)
+leave_request_router.include_router(sent_request_router)
+leave_request_router.include_router(staff_get_request_router)
+leave_request_router.include_router(staff_get_requests_router)
+leave_request_router.include_router(add_leave_request_router)
+leave_request_router.include_router(admin_get_requests_router)
