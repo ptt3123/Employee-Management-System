@@ -8,7 +8,7 @@ from exceptions.exceptions import (
     EmployeeNotFoundException,
     InvalidPaginationException,
     FieldValueExistsException,
-    UnauthorizedException
+    UnauthorizedException, UsernameOrPasswordIncorrectException, PasswordIncorrectException, ObjectNotFoundException
 )
 
 def http_exception_handler(request: Request, exc: Exception) -> Response:
@@ -35,6 +35,15 @@ def employee_not_found_handler(request: Request, exc: Exception) -> Response:
     return JSONResponse(
         status_code=404,
         content={'success': False, "error": "Employee not found"}
+    )
+
+def object_not_found_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, ObjectNotFoundException):
+        logger.error(f"Unexpected exception in object_not_found_handler: {str(exc)}")
+        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
+    return JSONResponse(
+        status_code=404,
+        content={'success': False, "error": exc.message}
     )
 
 def invalid_pagination_handler(request: Request, exc: Exception) -> Response:
@@ -71,4 +80,24 @@ def fallback_exception_handler(request: Request, exc: Exception) -> Response:
     return JSONResponse(
         status_code=500,
         content={'success': False, "error": "Internal Server Error"}
+    )
+
+def username_password_incorrect_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, UsernameOrPasswordIncorrectException):
+        logger.error(f"Unexpected exception in username_password_incorrect_handler: {str(exc)}")
+        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
+
+    return JSONResponse(
+        status_code=401,
+        content={'success': False, "error": exc.message}
+    )
+
+def password_incorrect_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, PasswordIncorrectException):
+        logger.error(f"Unexpected exception in password_incorrect_handler: {str(exc)}")
+        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
+
+    return JSONResponse(
+        status_code=401,
+        content={'success': False, "error": exc.message}
     )
