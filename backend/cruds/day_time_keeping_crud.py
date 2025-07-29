@@ -4,15 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import time, timedelta, datetime
 
 from sqlalchemy.future import select
+from sqlalchemy import delete
 
 from entities.day_time_keeping import DayTimekeeping
 from exceptions.exceptions import *
 from schemas.day_time_keeping_schemas.day_time_keeping_regis_form import DayTimeKeepingRegisForm
 
 async def create_list(employee_id: int, form: DayTimeKeepingRegisForm, db: AsyncSession) -> None:
-
-    if await has_registered_next_week(employee_id, db):
-        raise HasRegisteredNextWeekException()
 
     try:
         for dtk in form.regis_list:
@@ -36,7 +34,7 @@ async def create_list(employee_id: int, form: DayTimeKeepingRegisForm, db: Async
         print(e)
         raise e
 
-async def has_registered_next_week(employee_id: int, db: AsyncSession) -> bool:
+async def has_registered_schedule_next_week(employee_id: int, db: AsyncSession) -> bool:
     today = date.today()
     current_monday = today - timedelta(days=today.weekday())
     next_monday = current_monday + timedelta(days=7)
@@ -123,7 +121,7 @@ async def get_dtk_history(
         employee_id: int, page: int, page_size: int, start_date: date, end_date: date, db: AsyncSession):
 
     try:
-        offset = page * page_size
+        offset = (page - 1) * page_size
 
         # Fetch paginated data
         data_query = select(DayTimekeeping).where(
@@ -156,3 +154,25 @@ async def get_dtk_history(
         await db.rollback()
         print(f"Check-in error: {e}")
         raise e
+
+async def delete_registered_schedule_next_week(employee_id: int, db: AsyncSession) -> bool:
+    today = date.today()
+    current_monday = today - timedelta(days=today.weekday())
+    next_monday = current_monday + timedelta(days=7)
+    next_sunday = next_monday + timedelta(days=6)
+
+    delete_query = delete(DayTimekeeping).where(
+        (DayTimekeeping.employee_id == employee_id) &
+        (DayTimekeeping.date >= next_monday) &
+        (DayTimekeeping.date <= next_sunday)
+    )
+
+    try:
+        result = await db.execute(delete_query)
+        await db.commit()
+        return result.rowcount > 0
+
+    except SQLAlchemyError as e:
+            await db.rollback()
+            print(e)
+            raise e

@@ -8,7 +8,11 @@ class DayTimeKeeping(BaseModel):
 
     @field_validator('shift_start', 'shift_end')
     @classmethod
-    def validate_shift_times(cls, v, info: ValidationInfo):
+    def validate_shift_times(cls, v, info):
+        # If v has tzinfo, remove it to make it offset-naive
+        if v.tzinfo is not None:
+            v = v.replace(tzinfo=None)
+
         field_name = info.field_name
 
         if field_name == 'shift_start':
@@ -20,7 +24,11 @@ class DayTimeKeeping(BaseModel):
                 raise ValueError("Shift must end no later than 9:00 PM")
 
             shift_start = info.data.get('shift_start')
-            if shift_start and v <= shift_start:
-                raise ValueError("Shift end time must be after shift start time")
+            if shift_start:
+                if shift_start.tzinfo is not None:
+                    shift_start = shift_start.replace(tzinfo=None)
+
+                if v <= shift_start:
+                    raise ValueError("Shift end time must be after shift start time")
 
         return v

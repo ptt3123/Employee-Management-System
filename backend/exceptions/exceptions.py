@@ -20,7 +20,7 @@ class InvalidCheckoutException(Exception):
         super().__init__(message)
 
 class InvalidCheckinCheckoutException(Exception):
-    def __init__(self, message: str = "Can not checkin too soon or checkout too late"):
+    def __init__(self, message: str = "Invalid checkin checkout"):
         self.message = message
         super().__init__(message)
 

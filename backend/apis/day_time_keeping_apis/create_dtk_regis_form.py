@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from exceptions.exceptions import HasRegisteredNextWeekException
 from schemas.day_time_keeping_schemas.day_time_keeping_regis_form import DayTimeKeepingRegisForm
-from cruds.day_time_keeping_crud import create_list, has_registered_next_week
+from cruds.day_time_keeping_crud import create_list, has_registered_schedule_next_week
 from dependencies.get_infor_from_token import get_infor_from_token
 from database import get_db
 
@@ -17,6 +17,9 @@ async def create_dtk_regis_form(
 ):
     try:
         employee_id = int(infor.id)
+
+        if await has_registered_schedule_next_week(employee_id, db):
+            raise HasRegisteredNextWeekException()
 
         await create_list(employee_id, form, db)
 

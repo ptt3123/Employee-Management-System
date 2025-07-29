@@ -1,7 +1,9 @@
 from datetime import date, timedelta
 from typing import List, Set
 
+from fastapi import HTTPException
 from pydantic import BaseModel, field_validator
+from pydantic_core import PydanticCustomError
 
 from schemas.day_time_keeping_schemas.day_time_keeping import DayTimeKeeping
 
@@ -16,7 +18,11 @@ class DayTimeKeepingRegisForm(BaseModel):
         dates_seen: Set[date] = set()
         for regis in v:
             if regis.date in dates_seen:
-                raise ValueError(f"Duplicate date detected: {regis.date}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Duplicate date detected: {regis.date}",
+                )
+
             dates_seen.add(regis.date)
 
         # Ensure all dates are in NEXT week only
@@ -27,6 +33,9 @@ class DayTimeKeepingRegisForm(BaseModel):
 
         for regis in v:
             if not (next_monday <= regis.date <= next_saturday):
-                raise ValueError(f"Only dates from next week (Mon–Sat) are allowed: {regis.date}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=f'Date must be in next week (Mon–Sat): {regis.date}',
+                )
 
         return v

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cruds.day_time_keeping_crud import has_registered_next_week
+from cruds.day_time_keeping_crud import has_registered_schedule_next_week
 from dependencies.get_infor_from_token import get_infor_from_token
 from database import get_db
 
@@ -15,7 +15,7 @@ async def check_if_registered_next_week(
     try:
         employee_id = int(infor.id)
 
-        if await has_registered_next_week(employee_id, db):
+        if await has_registered_schedule_next_week(employee_id, db):
             return {"message": "True"}
 
         else:

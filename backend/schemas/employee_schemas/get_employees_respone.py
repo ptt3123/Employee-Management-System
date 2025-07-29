@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 
 from enums import EmployeeStatus, EmployeePosition
 from schemas.employee_schemas.employee_schema import EmployeeBase
@@ -12,7 +12,7 @@ class EmployeesResponse(EmployeeBase):
     phone_number: str
     status: EmployeeStatus
     address: str
-    dob: datetime.date
+    dob: date
     position: EmployeePosition
     username: str
     team_name: str
