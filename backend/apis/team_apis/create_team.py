@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import JSONResponse
 
 from cruds.team_crud import create_team_crud
 from database import get_db
@@ -19,9 +20,12 @@ async def create_team(
 
     try:
         await create_team_crud(new_team, db)
-        return {
-            'success': True,
-            'message': 'Team created successfully.',
-        }
+        return JSONResponse(
+            status_code=201,
+            content={
+                'success': True,
+                'message': 'Team created successfully.',
+            }
+        )
     except Exception as e:
         raise e
