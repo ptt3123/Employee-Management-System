@@ -1,9 +1,7 @@
 # app run here
-import logging
-from fastapi import FastAPI
-from sqlalchemy.exc import SQLAlchemyError
 
-from fastapi.exceptions import HTTPException
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
 
 from apis.routes import router
 
@@ -12,6 +10,13 @@ from exceptions.exceptions import *
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
