@@ -1,3 +1,4 @@
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
@@ -19,7 +20,8 @@ async def get_current_leave_request_crud(leave_request_id: int, db: AsyncSession
 async def staff_get_leave_requests_crud(
         page: int,
         pages_size: int,
-        employee_id, db: AsyncSession
+        employee_id,
+        db: AsyncSession
     ):
 
     skip = (page - 1) * pages_size
@@ -37,7 +39,12 @@ async def staff_get_leave_requests_crud(
     if leave_requests is None:
         raise ObjectNotFoundException('Leave Request')
 
-    return leave_requests
+    return {
+        'current_page': page,
+        'total_pages': total_pages,
+        'total_leave_requests': total_leave_requests,
+        'leave_requests': jsonable_encoder(leave_requests)
+    }
 
 async def leave_request_create_crud(request: LeaveRequestCreate,employee_id, db: AsyncSession):
     try:

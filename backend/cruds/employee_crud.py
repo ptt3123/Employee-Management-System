@@ -1,4 +1,3 @@
-from tabnanny import check
 
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -125,10 +124,6 @@ async def get_employees_crud(db: AsyncSession, params: GetEmployees):
 
         employees_response = []
         for row in employees:
-            is_working = False
-
-            if row.checkin and not row.checkout:
-                is_working = True
             new_employee_response = EmployeesResponse(
                 id=row.id,
                 team_id=row.team_id,
@@ -194,5 +189,3 @@ async def update_employee_crud(
     except Exception as e:
         await db.rollback()
         raise e
-
-

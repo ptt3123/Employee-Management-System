@@ -1,18 +1,20 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
-from pyexpat.errors import messages
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
 from cruds.team_crud import update_team_crud
 from database import get_db
+from dependencies.get_admin_role import get_admin_role
 from schemas.team_schemas.team_schema import UpdateTeam
+from schemas.token.InforFromToken import InforFromToken
 
 update_team_router = APIRouter()
 
 @update_team_router.put("/update-team")
 async def update_team(
         team_data: UpdateTeam,
+        admin_role: InforFromToken= Depends(get_admin_role),
         db: AsyncSession = Depends(get_db)
     ):
 

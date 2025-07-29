@@ -3,7 +3,7 @@ from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
-from cruds.leave_request import leave_request_create_crud
+from cruds.leave_request_crud import leave_request_create_crud
 from database import get_db
 from dependencies.get_infor_from_token import get_infor_from_token
 from schemas.leave_requests_schemas.leave_request_schemas import LeaveRequestCreate
