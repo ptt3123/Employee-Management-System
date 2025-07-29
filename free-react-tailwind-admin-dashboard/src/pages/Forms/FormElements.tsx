@@ -9,7 +9,7 @@ export default function FormElements() {
         title="Quản lý nghỉ phép | TailAdmin"
         description="Trang quản lý nghỉ phép nhân viên"
       />
-      <PageBreadcrumb pageTitle="From Elements" />
+      <PageBreadcrumb pageTitle="Quản lý nghỉ phép " />
       <LeaveRequestManager />
     </div>
   );

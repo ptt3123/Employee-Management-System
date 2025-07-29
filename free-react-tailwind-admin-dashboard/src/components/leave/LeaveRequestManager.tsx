@@ -64,38 +64,38 @@ export default function LeaveRequestManager() {
 
   return (
     <div className="p-6 font-sans">
-      <h2 className="text-2xl font-bold mb-6">Quản lý nghỉ phép</h2>
+      
       <div className="overflow-x-auto">
         <table className="min-w-full border">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-4 py-2 text-left">STT</th>
-              <th className="border px-4 py-2 text-left">Họ và tên</th>
-              <th className="border px-4 py-2 text-left">Ngày tạo</th>
-              <th className="border px-4 py-2 text-left">Loại</th>
-              <th className="border px-4 py-2 text-left">Trạng thái</th>
-              <th className="border px-4 py-2 text-left">Chi tiết</th>
-              <th className="border px-4 py-2 text-left">Người kiểm duyệt</th>
+              <th className="border px-4 py-2 text-center">STT</th>
+              <th className="border px-4 py-2 text-center">Họ và tên</th>
+              <th className="border px-4 py-2 text-center">Ngày tạo</th>
+              <th className="border px-4 py-2 text-center">Loại</th>
+              <th className="border px-4 py-2 text-center">Trạng thái</th>
+              <th className="border px-4 py-2 text-center">Chi tiết</th>
+              <th className="border px-4 py-2 text-center">Người kiểm duyệt</th>
             </tr>
           </thead>
           <tbody>
             {paginatedData.map((req, index) => (
               <tr key={req.id} className="border">
-                <td className="border px-4 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                <td className="border px-4 py-2">{req.employeeName}</td>
-                <td className="border px-4 py-2">{req.createDate}</td>
-                <td className="border px-4 py-2">{req.type}</td>
-                <td className="border px-4 py-2">
+                <td className="border px-4 py-2 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                <td className="border px-4 py-2 text-center">{req.employeeName}</td>
+                <td className="border px-4 py-2 text-center">{req.createDate}</td>
+                <td className="border px-4 py-2 text-center">{req.type}</td>
+                <td className="border px-4 py-2 text-center">
                   <select
                     value={req.status}
                     onChange={(e) => updateStatus(req.id, e.target.value as LeaveRequest["status"])}
                     className={
-                      "border rounded px-2 py-1 bg-white " +
+                      "border rounded px-2 py-1 " +
                       (req.status === "pending"
-                        ? "text-yellow-600"
+                        ? "bg-yellow-100 text-yellow-700"
                         : req.status === "approved"
-                        ? "text-green-600"
-                        : "text-red-600")
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700")
                     }
                   >
                     <option value="pending">Chờ xác nhận</option>
@@ -103,7 +103,7 @@ export default function LeaveRequestManager() {
                     <option value="rejected">Từ chối</option>
                   </select>
                 </td>
-                <td className="border px-4 py-2">
+                <td className="border px-4 py-2 text-center">
                   <button
                     className="text-blue-600 hover:underline"
                     onClick={() => setSelectedRequest(req)}
@@ -111,7 +111,7 @@ export default function LeaveRequestManager() {
                     Xem chi tiết
                   </button>
                 </td>
-                <td className="border px-4 py-2">{req.status === "pending" ? "" : req.approver}</td>
+                <td className="border px-4 py-2 text-center">{req.status === "pending" ? "" : req.approver}</td>
               </tr>
             ))}
           </tbody>

@@ -1,221 +1,187 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRow,
-} from "../../ui/table";
+import React, { useState } from "react";
 
-import Badge from "../../ui/badge/Badge";
-
-interface Order {
-  id: number;
-  user: {
-    image: string;
-    name: string;
-    role: string;
-  };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
-}
-
-// Define the table data using the interface
-const tableData: Order[] = [
+const salaryList = [
   {
     id: 1,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Lindsey Curtis",
-      role: "Web Designer",
-    },
-    projectName: "Agency Website",
-    team: {
-      images: [
-        "/images/user/user-22.jpg",
-        "/images/user/user-23.jpg",
-        "/images/user/user-24.jpg",
-      ],
-    },
-    budget: "3.9K",
-    status: "Active",
+    employee: "Nguyễn Văn A",
+    basicSalary: 8000000,
+    allowance: 1000000,
+    bonus: 500000,
+    status: "Đã trả",
+    payslipUrl: "/payslip/1.pdf",
   },
   {
     id: 2,
-    user: {
-      image: "/images/user/user-18.jpg",
-      name: "Kaiya George",
-      role: "Project Manager",
-    },
-    projectName: "Technology",
-    team: {
-      images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
-    },
-    budget: "24.9K",
-    status: "Pending",
+    employee: "Trần Thị B",
+    basicSalary: 7500000,
+    allowance: 800000,
+    bonus: 400000,
+    status: "Chưa trả",
+    payslipUrl: "/payslip/2.pdf",
   },
-  {
-    id: 3,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Zain Geidt",
-      role: "Content Writing",
-    },
-    projectName: "Blog Writing",
-    team: {
-      images: ["/images/user/user-27.jpg"],
-    },
-    budget: "12.7K",
-    status: "Active",
-  },
-  {
-    id: 4,
-    user: {
-      image: "/images/user/user-20.jpg",
-      name: "Abram Schleifer",
-      role: "Digital Marketer",
-    },
-    projectName: "Social Media",
-    team: {
-      images: [
-        "/images/user/user-28.jpg",
-        "/images/user/user-29.jpg",
-        "/images/user/user-30.jpg",
-      ],
-    },
-    budget: "2.8K",
-    status: "Cancel",
-  },
-  {
-    id: 5,
-    user: {
-      image: "/images/user/user-21.jpg",
-      name: "Carla George",
-      role: "Front-end Developer",
-    },
-    projectName: "Website",
-    team: {
-      images: [
-        "/images/user/user-31.jpg",
-        "/images/user/user-32.jpg",
-        "/images/user/user-33.jpg",
-      ],
-    },
-    budget: "4.5K",
-    status: "Active",
-  },
+  // ...thêm dữ liệu nếu muốn
 ];
 
-export default function BasicTableOne() {
-  return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="max-w-full overflow-x-auto">
-        <Table>
-          {/* Table Header */}
-          <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-            <TableRow>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                User
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Project Name
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Team
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Status
-              </TableCell>
-              <TableCell
-                isHeader
-                className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-              >
-                Budget
-              </TableCell>
-            </TableRow>
-          </TableHeader>
+const statusOptions = ["Đã trả", "Chưa trả"];
 
-          {/* Table Body */}
-          <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-            {tableData.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell className="px-5 py-4 sm:px-6 text-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 overflow-hidden rounded-full">
-                      <img
-                        width={40}
-                        height={40}
-                        src={order.user.image}
-                        alt={order.user.name}
-                      />
-                    </div>
-                    <div>
-                      <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                        {order.user.name}
-                      </span>
-                      <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                        {order.user.role}
-                      </span>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  {order.projectName}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <div className="flex -space-x-2">
-                    {order.team.images.map((teamImage, index) => (
-                      <div
-                        key={index}
-                        className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"
-                      >
-                        <img
-                          width={24}
-                          height={24}
-                          src={teamImage}
-                          alt={`Team member ${index + 1}`}
-                          className="w-full size-6"
-                        />
+export default function SalaryManagement() {
+  const [data, setData] = useState(salaryList);
+  const [detailId, setDetailId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const handleStatusChange = (id: number, value: string) => {
+    const updated = data.map((item) =>
+      item.id === id ? { ...item, status: value } : item
+    );
+    setData(updated);
+  };
+
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+
+  const renderStatus = (status: string) => {
+    switch (status) {
+      case "Đã trả":
+        return <span className="text-green-600 font-semibold">Đã trả</span>;
+      case "Chưa trả":
+        return <span className="text-yellow-600 font-semibold">Chưa trả</span>;
+      default:
+        return <span>{status}</span>;
+    }
+  };
+
+  return (
+    <div className="p-6 font-sans">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border px-4 py-2 text-center">STT</th>
+              <th className="border px-4 py-2 text-center">Nhân viên</th>
+              <th className="border px-4 py-2 text-center">Lương cơ bản</th>
+              <th className="border px-4 py-2 text-center">Phụ cấp</th>
+              <th className="border px-4 py-2 text-center">Thưởng</th>
+              <th className="border px-4 py-2 text-center">Tổng thu nhập</th>
+              <th className="border px-4 py-2 text-center">Trạng thái</th>
+              <th className="border px-4 py-2 text-center">Chi tiết</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((row, index) => {
+              const total =
+                row.basicSalary + row.allowance + row.bonus;
+
+              return (
+                <tr key={row.id} className="border">
+                  <td className="border px-4 py-2 text-center">
+                    {(currentPage - 1) * itemsPerPage + index + 1}
+                  </td>
+                  <td className="border px-4 py-2 text-center">{row.employee}</td>
+                  <td className="border px-4 py-2 text-center">{row.basicSalary.toLocaleString()}₫</td>
+                  <td className="border px-4 py-2 text-center">{row.allowance.toLocaleString()}₫</td>
+                  <td className="border px-4 py-2 text-center">{row.bonus.toLocaleString()}₫</td>
+                  <td className="border px-4 py-2 text-center font-semibold text-blue-700">
+                    {total.toLocaleString()}₫
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    <select
+                      className={
+                        "border rounded px-2 py-1 " +
+                        (row.status === "Đã trả"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700")
+                      }
+                      value={row.status}
+                      onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                    >
+                      {statusOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="border px-4 py-2 text-center">
+                    <button
+                      className="text-blue-600 hover:underline"
+                      onClick={() =>
+                        setDetailId(detailId === row.id ? null : row.id)
+                      }
+                    >
+                      Xem chi tiết
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {/* Chi tiết phiếu lương popup */}
+            {detailId &&
+              (() => {
+                const item = data.find((d) => d.id === detailId);
+                if (!item) return null;
+                return (
+                  <tr>
+                    <td colSpan={8}>
+                      <div className="fixed inset-0 z-[99999] flex items-center justify-center">
+                        <div
+                          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99998]"
+                          onClick={() => setDetailId(null)}
+                        ></div>
+                        <div className="relative bg-white rounded-2xl shadow-2xl w-[90%] max-w-xl p-8 z-[99999] animate-fade-in">
+                          <h3 className="text-2xl font-bold mb-6 text-center text-gray-800">Chi tiết phiếu lương</h3>
+                          <div className="space-y-4 text-gray-700">
+                            <div><span className="font-semibold">👤 Nhân viên:</span> {item.employee}</div>
+                            <div><span className="font-semibold">💵 Lương cơ bản:</span> {item.basicSalary.toLocaleString()}₫</div>
+                            <div><span className="font-semibold">➕ Phụ cấp:</span> {item.allowance.toLocaleString()}₫</div>
+                            <div><span className="font-semibold">🎁 Thưởng:</span> {item.bonus.toLocaleString()}₫</div>
+                            <div><span className="font-semibold">💰 Tổng thu nhập:</span> <span className="text-blue-700 font-bold">{(item.basicSalary + item.allowance + item.bonus).toLocaleString()}₫</span></div>
+                            <div><span className="font-semibold">📌 Trạng thái:</span> {renderStatus(item.status)}</div>
+                          </div>
+                          <div className="text-center mt-6 flex justify-center gap-3">
+                            <a
+                              href={item.payslipUrl}
+                              target="_blank"
+                              className="px-6 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 text-sm"
+                            >
+                              Xuất phiếu
+                            </a>
+                            <button
+                              onClick={() => setDetailId(null)}
+                              className="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"
+                            >
+                              Đóng
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                  <Badge
-                    size="sm"
-                    color={
-                      order.status === "Active"
-                        ? "success"
-                        : order.status === "Pending"
-                        ? "warning"
-                        : "error"
-                    }
-                  >
-                    {order.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                  {order.budget}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                    </td>
+                  </tr>
+                );
+              })()}
+          </tbody>
+        </table>
+        <div className="flex justify-center gap-4 mt-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+          >
+            Trước
+          </button>
+          <span className="self-center">Trang {currentPage} / {totalPages}</span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+          >
+            Sau
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -28,28 +28,34 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Dashboard",
+    name: "Trang Chủ",
     subItems: [{ name: "Ecommerce", path: "/", pro: false }],
   },
-  {
-    icon: <CalenderIcon />,
-    name: "Calendar",
-    path: "/calendar",
-  },
+  
   {
     icon: <UserCircleIcon />,
-    name: "User Profile",
+    name: "Hồ sơ cá nhân",
     path: "/profile",
   },
   {
-    name: "Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Form Elements", path: "/form-elements", pro: false }],
+    icon: <CalenderIcon />,
+    name: "Quản lý chấm công",
+    path: "/calendar",
   },
   {
-    name: "Tables",
+  name: "Quản lý nghỉ phép",
+  icon: <ListIcon />,
+  path: "/form-elements",
+  },
+  {
+    name: "Quản lý lương",
     icon: <TableIcon />,
-    subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
+    path: "/basic-tables",
+  },
+    {
+    icon: <UserCircleIcon />,
+    name: "Quản lý nhân Viên",
+    path: "/manage-staff",
   },
   {
     name: "Pages",
@@ -59,11 +65,7 @@ const navItems: NavItem[] = [
       { name: "404 Error", path: "/error-404", pro: false },
     ],
   },
-  {
-  icon: <UserCircleIcon />,
-  name: "Manage Staff",
-  path: "/manage-staff",
-},
+  
 ];
 
 const othersItems: NavItem[] = [

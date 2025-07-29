@@ -81,7 +81,7 @@ export default function ManageStaff() {
 
     const staffToSave: Staff = {
       _id: editingStaffId ?? `staff-${Date.now()}`,
-      ...formData,
+      ...(formData as Staff),
     };
 
     try {
@@ -140,7 +140,7 @@ export default function ManageStaff() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Manage Staff</h1>
+      <h1 className="text-2xl font-bold mb-4">Quản lý nhân viên</h1>
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-2 items-center">
           <select
@@ -152,6 +152,11 @@ export default function ManageStaff() {
             <option value="email">Email</option>
             <option value="phoneNumber">Phone</option>
             <option value="name">Name</option>
+            <option value="address">Address</option>
+            <option value="dob">DOB</option>
+            <option value="position">Position</option>
+            <option value="teamId">Team</option>
+            <option value="status">Status</option>
           </select>
           <Input
             type="text"
@@ -257,7 +262,14 @@ export default function ManageStaff() {
                         )
                       );
                     }}
-                    className="border rounded px-2 py-1"
+                    className={
+                      "border rounded px-2 py-1 " +
+                      (staff.status === "working"
+                        ? "bg-green-100 text-green-700"
+                        : staff.status === "inactive"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700")
+                    }
                   >
                     {STAFF_STATUS.map(opt => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
