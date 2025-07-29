@@ -1,12 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from entities import LeaveRequest
 from enums import RequestStatus
 from exceptions.exceptions import ObjectNotFoundException
-from schemas.employee_schemas.get_employees import GetEmployees
 from schemas.leave_requests_schemas.leave_request_schemas import LeaveRequestCreate
-
 
 async def get_current_leave_request_crud(leave_request_id: int, db: AsyncSession):
     stmt = select(LeaveRequest).where(LeaveRequest.id == leave_request_id)
@@ -18,9 +16,22 @@ async def get_current_leave_request_crud(leave_request_id: int, db: AsyncSession
 
     return leave_request
 
-async def get_leave_requests_crud(employee_id, db: AsyncSession):
+async def staff_get_leave_requests_crud(
+        page: int,
+        pages_size: int,
+        employee_id, db: AsyncSession
+    ):
+
+    skip = (page - 1) * pages_size
+
     stmt = select(LeaveRequest).where(LeaveRequest.employee_id == employee_id)
-    result = await db.execute(stmt)
+
+    total_leave_requests = (await db.execute(
+        select(func.count()).select_from(stmt.subquery())
+    )).scalar()
+    total_pages = (total_leave_requests + pages_size - 1) // pages_size
+
+    result = await db.execute(stmt.offset(skip).limit(pages_size))
     leave_requests = result.scalars().all()
 
     if leave_requests is None:
