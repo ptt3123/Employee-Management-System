@@ -1,7 +1,28 @@
+from datetime import date
 from typing import Optional
 
 from pydantic import EmailStr
 
+
+class HasRegisteredNextWeekException(Exception):
+    def __init__(self, message: str = "Can not register next week again"):
+        self.message = message
+        super().__init__(message)
+
+class NoScheduleRegisteredException(Exception):
+    def __init__(self, message: str = "No schedule registered for today"):
+        self.message = message
+        super().__init__(message)
+
+class InvalidCheckoutException(Exception):
+    def __init__(self, message: str = "Can not checkout before checkin"):
+        self.message = message
+        super().__init__(message)
+
+class InvalidCheckinCheckoutException(Exception):
+    def __init__(self, message: str = "Invalid checkin checkout"):
+        self.message = message
+        super().__init__(message)
 
 class EmployeeNotFoundException(Exception):
     def __init__(self, message: str = "Can not find employee"):
