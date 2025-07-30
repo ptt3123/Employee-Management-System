@@ -1,6 +1,6 @@
 import { Staff } from "../types/staff";
 
-const BASE_URL = "https://01a284610f51.ngrok-free.app/";
+const BASE_URL = "https://tone-elections-shops-clarke.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
@@ -39,10 +39,13 @@ export async function loginStaff(credentials: { username: string; password: stri
 
 
 // 🟢 2. Tạo nhân viên mới (Admin)
-export async function createStaff(staff: Staff): Promise<Staff> {
+export async function createStaff(staff: Staff, token: string): Promise<Staff> {
   const res = await fetch(`${BASE_URL}employee/create-employee`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     body: JSON.stringify(staff),
   });
 
@@ -78,46 +81,62 @@ export async function updateStaff(employeeId: string, updatedData: Partial<Staff
   if (!res.ok) await handleApiError(res);
 }
 
+
 // 🟢 5. Lấy danh sách nhân viên
-export async function getAllStaff(token: string): Promise<Staff[]> {
-  const res = await fetch(`${BASE_URL}employee/get-employees`, {
+export async function getAllStaff(
+  token: string,
+  page: number = 1,
+  pageSize: number = 10,
+  teamId?: string | null,
+  searchBy?: string,
+  searchValue?: string,
+  sortBy?: string,
+  sortOrder?: "ASC" | "DESC"
+): Promise<{ employees: Staff[]; total_pages: number }> {
+  const query = new URLSearchParams();
+
+  query.append("page", page.toString());
+  query.append("page_size", pageSize.toString());
+
+  if (teamId) query.append("team_id", teamId);
+  if (searchBy && searchValue) {
+    query.append("search_by", searchBy);
+    query.append("search_value", searchValue);
+  }
+  if (sortBy) query.append("sort_by", sortBy);
+  if (sortOrder) query.append("sort_value", sortOrder);
+
+  const res = await fetch(`${BASE_URL}employee/get-employees?${query.toString()}`, {
     headers: {
       Authorization: `Bearer ${token}`,
-      'ngrok-skip-browser-warning': 'true',
+      "ngrok-skip-browser-warning": "true",
     },
   });
 
   const text = await res.text();
-  console.log("👉 Status:", res.status);
-  console.log("👉 Raw response:", text);
+  const json = JSON.parse(text);
 
-  try {
-    const json = JSON.parse(text);
-
-    // ✅ Nếu token sai → ném lỗi để StaffTable xử lý
-    if (!res.ok || !json.success || !json.data) {
-      throw new Error(json.error || "Không thể lấy danh sách nhân viên.");
-    }
-
-    const rawList = json.data.employees;
-  
-
-    return rawList.map((item: any) => ({
-      id: item.id,
-      team_id: item.team_id,
-      position: item.position,
-      name: item.name,
-      email: item.email,
-      phone_number: item.phone_number,
-      status: item.status,
-      address: item.address,
-      dob: item.dob,
-      username: item.username,
-      team_name: item.team_name,
-      is_working: item.is_working,
-    }));
-  } catch (err) {
-    console.error("❌ JSON parse error:", err);
-    throw err;
+  if (!res.ok || !json.success || !json.data) {
+    throw new Error(json.error || "Không thể lấy danh sách nhân viên.");
   }
+
+  const rawList = json.data.employees;
+  const totalPages = json.data.total_pages ?? 1;
+
+  const employees = rawList.map((item: any) => ({
+    id: item.id,
+    team_id: item.team_id,
+    position: item.position,
+    name: item.name,
+    email: item.email,
+    phone_number: item.phone_number,
+    status: item.status,
+    address: item.address,
+    dob: item.dob,
+    username: item.username,
+    team_name: item.team_name,
+    is_working: item.is_working,
+  }));
+
+  return { employees, total_pages: totalPages };
 }

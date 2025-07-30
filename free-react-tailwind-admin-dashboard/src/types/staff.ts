@@ -5,7 +5,7 @@ export interface Staff {
   name: string;
   email: string;
   phone_number: string;
-  status: "working" | "inactive" | "resigned";
+  status: "active" | "resigned" | "terminated" | "retired"; // Chỉ sử dụng 3 trạng thái này
   address?: string;
   dob?: string; // ISO string format e.g., '1990-01-01'
   username: string;
