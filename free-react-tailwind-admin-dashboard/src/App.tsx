@@ -1,4 +1,4 @@
-import { Router, Routes, Route } from "react-router";
+import { Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -23,6 +23,7 @@ export default function App() {
   const accessToken = localStorage.getItem("access_token");
   console.log("Access Token:", accessToken);
   return (
+    
     <>
       
         <ScrollToTop />
@@ -35,7 +36,8 @@ export default function App() {
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
-            <Route path="/manage-staff" element={<ManageStaff />} />
+            <Route path="/manage-staff" element={<ManageStaff token={accessToken || ""} />} />
+
             {/* Forms */}
             <Route path="/form-elements" element={<FormElements />} />
 

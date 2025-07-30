@@ -38,6 +38,11 @@ const navItems: NavItem[] = [
     path: "/profile",
   },
   {
+    icon: <UserCircleIcon />,
+    name: "Quản lý nhân Viên",
+    path: "/manage-staff",
+  },
+  {
     icon: <CalenderIcon />,
     name: "Quản lý chấm công",
     path: "/calendar",
@@ -52,11 +57,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     path: "/basic-tables",
   },
-    {
-    icon: <UserCircleIcon />,
-    name: "Quản lý nhân Viên",
-    path: "/manage-staff",
-  },
+  
   {
     name: "Pages",
     icon: <PageIcon />,

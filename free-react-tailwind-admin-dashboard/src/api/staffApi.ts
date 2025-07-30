@@ -1,18 +1,16 @@
 import { Staff } from "../types/staff";
 
-const BASE_URL = "http://localhost:5001";
+const BASE_URL = "https://01a284610f51.ngrok-free.app/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
   try {
     const errorData = await res.json();
 
-    // Trường hợp lỗi dạng object (thường là 400)
     if (res.status === 400 && typeof errorData.detail === "object") {
-      throw errorData.detail; // lỗi từng trường (username/email/...)
+      throw errorData.detail;
     }
 
-    // Trường hợp lỗi chuỗi
     if (typeof errorData.detail === "string") {
       throw new Error(errorData.detail);
     }
@@ -23,64 +21,103 @@ async function handleApiError(res: Response): Promise<never> {
   }
 }
 
-// 🟢 1. Đăng ký nhân viên mới
+// 🟢 1. Đăng nhập nhân viên
+export async function loginStaff(credentials: { username: string; password: string }): Promise<{ access_token: string; token_type: string }> {
+  const params = new URLSearchParams();
+  params.append("username", credentials.username);
+  params.append("password", credentials.password);
+  console.log(params.toString());
+  const res = await fetch(`${BASE_URL}employee/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  if (!res.ok) await handleApiError(res);
+  return await res.json();
+}
+
+
+// 🟢 2. Tạo nhân viên mới (Admin)
 export async function createStaff(staff: Staff): Promise<Staff> {
-  const res = await fetch("http://localhost:5001/register", {
+  const res = await fetch(`${BASE_URL}employee/create-employee`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(staff),
   });
 
-  if (!res.ok) {
-    const err = await res.json();
-
-    // 👉 Nếu backend trả detail là object (field errors), ném nguyên object
-    if (typeof err.detail === "object") throw err.detail;
-
-    // 👉 Nếu backend trả lỗi là chuỗi
-    if (typeof err.detail === "string") throw new Error(err.detail);
-
-    throw new Error("Lỗi không xác định khi tạo nhân viên.");
-  }
-
-  const data = await res.json();
-  return data.data?.user ?? data;
+  if (!res.ok) await handleApiError(res);
+  return await res.json();
 }
 
-
-/* 🟢 2. Lấy thông tin nhân viên theo ID
-export async function getStaffById(id: String): Promise<Staff> {
-  const res = await fetch(`${BASE_URL}/read/${id}`);
-  if (!res.ok) await handleApiError(res);
-  const data = await res.json();
-  return data;
-} */
-
-export async function getAllStaff(): Promise<Staff[]> {
-  const res = await fetch(`${BASE_URL}/getall`);
-  if (!res.ok) await handleApiError(res);
-  const data = await res.json();
-  return data;
-}
-// 🟢 3. Cập nhật mật khẩu nhân viên
-// 🟢 Cập nhật toàn bộ thông tin nhân viên
-export async function updateStaff(employeeId: string, updatedData: Partial<Staff>): Promise<void> {
-  const res = await fetch(`${BASE_URL}/update/${employeeId}`, {
+// 🟢 3. Cập nhật mật khẩu
+export async function changePassword(data: { old_password: string; new_password: string }, token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}employee/change-password`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) await handleApiError(res);
+}
+
+// 🟢 4. Cập nhật nhân viên (Admin)
+export async function updateStaff(employeeId: string, updatedData: Partial<Staff>, token: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/update-employee/${employeeId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(updatedData),
   });
 
   if (!res.ok) await handleApiError(res);
 }
 
-
-// 🟢 4. Xoá nhân viên theo ID
-export async function deleteStaff(id: String): Promise<void> {
-  const res = await fetch(`${BASE_URL}/delete/${id}`, {
-    method: "DELETE",
+// 🟢 5. Lấy danh sách nhân viên
+export async function getAllStaff(token: string): Promise<Staff[]> {
+  const res = await fetch(`${BASE_URL}employee/get-employees`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
   });
 
-  if (!res.ok) await handleApiError(res);
-}
+  const text = await res.text();
+  console.log("👉 Status:", res.status);
+  console.log("👉 Raw response:", text);
 
+  try {
+    const json = JSON.parse(text);
+
+    // ✅ Nếu token sai → ném lỗi để StaffTable xử lý
+    if (!res.ok || !json.success || !json.data) {
+      throw new Error(json.error || "Không thể lấy danh sách nhân viên.");
+    }
+
+    const rawList = json.data.employees;
+  
+
+    return rawList.map((item: any) => ({
+      id: item.id,
+      team_id: item.team_id,
+      position: item.position,
+      name: item.name,
+      email: item.email,
+      phone_number: item.phone_number,
+      status: item.status,
+      address: item.address,
+      dob: item.dob,
+      username: item.username,
+      team_name: item.team_name,
+      is_working: item.is_working,
+    }));
+  } catch (err) {
+    console.error("❌ JSON parse error:", err);
+    throw err;
+  }
+}
