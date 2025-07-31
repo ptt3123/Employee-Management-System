@@ -50,8 +50,8 @@ class FieldValueExistsException(Exception):
             parts.append(f'Email "{email}"')
         if phone_number:
             parts.append(f'Phone number "{phone_number}"')
-        message = " and ".join(parts) + " already exists"
-        super().__init__(message)
+        self.message = " and ".join(parts) + " already exists"
+        super().__init__(self.message)
 
 class UnauthorizedException(Exception):
     def __init__(self, message: str = "Unauthorized"):
