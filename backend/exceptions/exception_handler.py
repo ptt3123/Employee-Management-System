@@ -51,15 +51,6 @@ def employee_not_found_handler(request: Request, exc: Exception) -> Response:
         content={'success': False, "error": "Employee not found"}
     )
 
-def object_not_found_handler(request: Request, exc: Exception) -> Response:
-    if not isinstance(exc, ObjectNotFoundException):
-        logger.error(f"Unexpected exception in object_not_found_handler: {str(exc)}")
-        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
-    return JSONResponse(
-        status_code=404,
-        content={'success': False, "error": exc.message}
-    )
-
 def has_registered_next_week_handler(request: Request, exc: Exception) -> Response:
     if not isinstance(exc, HasRegisteredNextWeekException):
         logger.error(f"Unexpected exception in has_registered_next_week_handler: {str(exc)}")
