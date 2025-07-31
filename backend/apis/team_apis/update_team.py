@@ -12,7 +12,7 @@ from schemas.token.InforFromToken import InforFromToken
 update_team_router = APIRouter()
 
 @update_team_router.put("/update-team")
-async def update_team(
+async def update_team_controller(
         team_data: UpdateTeam,
         admin_role: InforFromToken= Depends(get_admin_role),
         db: AsyncSession = Depends(get_db)

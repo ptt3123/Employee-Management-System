@@ -11,7 +11,7 @@ from schemas.token.InforFromToken import InforFromToken
 delete_team_router = APIRouter()
 
 @delete_team_router.delete('/delete-team/{team_id}')
-async def delete_team(
+async def delete_team_controller(
         team_id: int,
         admin_role: InforFromToken = Depends(get_admin_role),
         db: AsyncSession = Depends(get_db)

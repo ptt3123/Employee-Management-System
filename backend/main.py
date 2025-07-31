@@ -33,6 +33,7 @@ app.add_exception_handler(PasswordIncorrectException, password_incorrect_handler
 app.add_exception_handler(ObjectNotFoundException, object_not_found_handler)
 app.add_exception_handler(UsernameOrPasswordIncorrectException, username_password_incorrect_handler)
 app.add_exception_handler(PasswordIncorrectException, password_incorrect_handler)
+app.add_exception_handler(RequestInProcessingException, request_in_processing_handler)
 app.add_exception_handler(Exception, fallback_exception_handler)
 
 app.include_router(router)
