@@ -11,6 +11,7 @@ from schemas.employee_schemas.get_employees import GetEmployees
 from datetime import date
 
 from schemas.employee_schemas.get_employees_respone import EmployeesResponse
+from schemas.employee_schemas.update_profile import UpdateProfile
 
 
 async def get_current_employee(db: AsyncSession, field: str, value):
@@ -188,4 +189,25 @@ async def update_employee_crud(
 
     except Exception as e:
         await db.rollback()
+        raise e
+
+async def employee_update_profile_crud(
+        update_data: UpdateProfile,
+        employee_id: int,
+        db: AsyncSession
+    ):
+
+    try:
+        stmt = select(Employee).where(Employee.id == employee_id)
+
+        employee = (await db.execute(stmt)).scalar_one_or_none()
+        if not employee: raise EmployeeNotFoundException
+
+        for key, value in update_data.model_dump().items():
+            if value:
+                setattr(employee, key, value)
+
+        await db.commit()
+        await db.refresh(employee)
+    except Exception as e:
         raise e

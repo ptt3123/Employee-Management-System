@@ -21,6 +21,7 @@ async def create_employee(
         employee_infor: InforFromToken = Depends(get_admin_role),
     ):
     try:
+        print(new_employee)
         await check_exists_field(
             db,
             new_employee.email,

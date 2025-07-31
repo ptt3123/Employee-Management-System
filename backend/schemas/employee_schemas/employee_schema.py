@@ -1,4 +1,4 @@
-from pydantic import constr
+from pydantic import constr, model_validator
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -21,6 +21,13 @@ class EmployeeCreate(EmployeeBase):
     role: EmployeeRole = EmployeeRole.STAFF
     status: EmployeeStatus = EmployeeStatus.ACTIVE
 
+    @model_validator(mode="after")
+    def validate_employee(self):
+        if len(self.phone_number) != 10:
+            raise ValueError("Phone number must be 10 digits")
+
+        return self
+
 class EmployeeUpdate(EmployeeBase):
 
     name: Optional[str] = None
@@ -33,3 +40,9 @@ class EmployeeUpdate(EmployeeBase):
     password: Optional[constr(min_length=6, max_length=12)] = None
     status: Optional[EmployeeStatus] = None
     team_id: Optional[int] = None
+
+    @model_validator(mode="after")
+    def validate_update_employee(self):
+        if self.phone_number is not None and len(self.phone_number) != 10:
+            raise ValueError("Phone number must be 10 digits")
+        return self

@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, model_validator
 from datetime import date
-from enums import RequestType, RequestStatus, EmployeeStatus
+from enums import RequestType, RequestStatus, EmployeeStatus, SortValue
 
 
 class LeaveRequestBase(BaseModel):
@@ -59,10 +59,14 @@ class AdminGetLeaveRequests(BaseModel):
     end_date: Optional[date] = None
     type: Optional[RequestType] = None
     leave_request_status: Optional[RequestStatus] = RequestStatus.PENDING
+    sort_by: Optional[str] = start_date,
+    sort_value: Optional[SortValue] = SortValue.DESC
     page: int = 1
     page_size: int = 10
 
     @model_validator(mode='after')
-    def validate_dates(self):
+    def validate_status(self):
         if self.leave_request_status == RequestStatus.WAITING:
             raise ValueError('Leave request must be waiting')
+
+        return self
