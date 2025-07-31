@@ -10,7 +10,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/employee/login")
 
 
 async def get_infor_from_token(token: str = Depends(oauth2_scheme)) -> InforFromToken:
-    print(f"Received token: {token}")
+
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         employee_id: str = payload.get("sub")

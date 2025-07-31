@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import JSONResponse
 
 from database import get_db
 from dependencies.get_infor_from_token import get_infor_from_token
@@ -18,11 +19,14 @@ async def get_teams(
         token_infor: InforFromToken =  Depends(get_infor_from_token)):
     try:
         teams = await get_teams_crud(params_get_team, db)
-        return {
-            'success': True,
-            'message': 'Get Teams Success',
-            'data': teams
-        }
+        return JSONResponse(
+            status_code=200,
+            content={
+                'success': True,
+                'message': 'Get Teams Success',
+                'data': teams
+            }
+        )
     except Exception as e:
         print(e)
         raise e

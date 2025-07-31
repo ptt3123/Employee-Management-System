@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi.params import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import JSONResponse
 
 from cruds.employee_crud import get_employees_crud
 from database import get_db
@@ -26,11 +27,14 @@ async def get_employees(
 
         employees = await get_employees_crud(db, params_get_employees)
 
-        return {
-            "success": True,
-            "message": "Get employees success",
-            "data": employees
-        }
+        return JSONResponse(
+            status_code=200,
+            content= {
+                "success": True,
+                "message": "Get employees success",
+                "data": employees
+            }
+        )
     except Exception as e:
         print(e)
         raise e

@@ -40,6 +40,7 @@ def upgrade() -> None:
     op.drop_column('day_timekeeping', 'is_enough_time')
     op.add_column('month_time_keeping', sa.Column('year', sa.Integer(), nullable=False))
     op.drop_column('month_time_keeping', 'expected_working_days')
+
     # ### end Alembic commands ###
 
 
