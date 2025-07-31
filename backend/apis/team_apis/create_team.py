@@ -11,7 +11,7 @@ from schemas.team_schemas.team_schema import CreateTeam
 create_team_router = APIRouter()
 
 @create_team_router.post('/create-team')
-async def create_team(
+async def create_team_controller(
 
         new_team: CreateTeam,
         db: AsyncSession = Depends(get_db),

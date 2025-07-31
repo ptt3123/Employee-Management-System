@@ -13,7 +13,7 @@ from cruds.team_crud import get_teams_crud
 get_teams_router = APIRouter()
 
 @get_teams_router.get('/get-team')
-async def get_teams(
+async def get_teams_controller(
         params_get_team: GetTeam = Depends(),
         db: AsyncSession = Depends(get_db),
         token_infor: InforFromToken =  Depends(get_infor_from_token)):

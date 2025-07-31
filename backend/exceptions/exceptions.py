@@ -33,10 +33,10 @@ class ObjectNotFoundException(Exception):
     def __init__(self, not_found_object: Optional[str] = None):
         if not_found_object is not None:
             self.not_found_object = not_found_object
-            message = f"Object {not_found_object} not found"
-        else: message = "not found"
+            self.message = f"Object {not_found_object} not found"
+        else: self.message = "not found"
 
-        super().__init__(message)
+        super().__init__(self.message)
 
 class InvalidPaginationException(Exception):
     def __init__(self, message: str = "Page and page_size must be greater than 0"):
@@ -65,5 +65,10 @@ class UsernameOrPasswordIncorrectException(Exception):
 
 class PasswordIncorrectException(Exception):
     def __init__(self, message: str = "Password is incorrect"):
+        self.message = message
+        super().__init__(message)
+
+class RequestInProcessingException(Exception):
+    def __init__(self, message: str = "Request is in process request"):
         self.message = message
         super().__init__(message)

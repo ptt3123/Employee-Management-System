@@ -18,7 +18,8 @@ async def login(
         db: AsyncSession = Depends(get_db)
     ):
     employee = await get_current_employee(db,'username', form_data.username)
-
+    if not employee:
+        raise UsernameOrPasswordIncorrectException
     if employee.status != EmployeeStatus.ACTIVE:
         raise HTTPException(status_code=400, detail='Your account is not active.')
     if not employee or not verify_password(form_data.password, employee.password):
