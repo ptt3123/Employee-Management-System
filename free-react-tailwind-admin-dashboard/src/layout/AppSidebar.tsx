@@ -59,12 +59,9 @@ const navItems: NavItem[] = [
   },
   
   {
-    name: "Pages",
+    name: "Quản lý phòng ban",
     icon: <PageIcon />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    path: "/blank", 
   },
   
 ];

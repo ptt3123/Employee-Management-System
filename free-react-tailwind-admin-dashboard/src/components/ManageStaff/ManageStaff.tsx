@@ -1,24 +1,19 @@
 // components/StaffTable.tsx
 import  { useEffect, useState } from "react";
 import Button from "../ui/button/Button";
-import { Modal } from "../ui/modal";
+{/*import { Modal } from "../ui/modal"; */}
 import { useModal } from "../../hooks/useModal";
 import { Staff } from "../../types/staff";
+import { Team } from "../../types/team";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare, faSortUp, faSortDown } from "@fortawesome/free-solid-svg-icons";
-import { getAllStaff , createStaff } from "../../api/staffApi";
+import { getAllStaff , createStaff , updateStaff} from "../../api/staffApi";
+import { getTeams } from "../../api/staffTeamApi";
 
 interface Props {
   token: string;
 }
 
-const teamOptions = [
-  { id: "1", name: "Team A" },
-  { id: "2", name: "Team B" },
-];
-
-const searchFields = ["name", "email", "username", "phone_number"];
-const sortFields = ["name", "email", "dob", "status"];
 
 export default function StaffTable({ token }: Props) {
   const [staffList, setStaffList] = useState<Staff[]>([]);
@@ -30,18 +25,18 @@ export default function StaffTable({ token }: Props) {
   const [sortBy, setSortBy] = useState<string>("name");
   const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(5);
+  const [pageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const { isOpen, openModal, closeModal } = useModal();
   const [showAddModal, setShowAddModal] = useState(false);
-
+  const [employeeStatus, setEmployeeStatus] = useState<string>("ACTIVE");
   const [newStaffData, setNewStaffData] = useState<Partial<Staff>>({
     name: "",
     email: "",
     phone_number: "",
     address: "",
     dob: "",
-    status: "active",
+    status: "ACTIVE", // Mặc định là "Đang làm"
   });
   const fetchStaff = async () => {
     try {
@@ -53,7 +48,8 @@ export default function StaffTable({ token }: Props) {
         searchBy,
         searchValue,
         sortBy,
-        sortOrder
+        sortOrder,
+        employeeStatus
       );
       setStaffList(employees);
       setTotalPages(total_pages);
@@ -71,10 +67,24 @@ export default function StaffTable({ token }: Props) {
     }
   };
 
+  const [teamOptions, setTeamOptions] = useState<Team[]>([]);
+  useEffect(() => {
+  const fetchTeams = async () => {
+      try {
+        const teams = await getTeams(token);
+        setTeamOptions(teams);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách team:", error);
+      }
+    };
+
+  fetchTeams();
+}, [token]); // chỉ chạy 1 lần khi component mount
+
 
   useEffect(() => {
     fetchStaff();
-  }, [token, page, pageSize, teamId, searchBy, searchValue, sortBy, sortOrder]);
+  }, [token, page, pageSize, teamId, searchBy, searchValue, sortBy, sortOrder, employeeStatus]);
 
   const handleEdit = (staff: Staff) => {
     setSelectedStaff(staff);
@@ -95,6 +105,29 @@ export default function StaffTable({ token }: Props) {
     setPage(1);
     fetchStaff();
   };
+
+  const convertDate = (date: string, toSlash = true) =>
+  date ? date.replace(/[-/]/g, toSlash ? "/" : "-") : "";
+  function handleInputChange(field: string, value: any) {
+  setSelectedStaff((prev) =>
+    prev ? { ...prev, [field]: value } : prev
+  );
+  }
+
+  async function handleSaveStaff() {
+  if (!selectedStaff) return;
+
+  try {
+    await updateStaff(selectedStaff.id!, selectedStaff, token); // 👈 Gọi API update
+    console.log("Đã cập nhật:", selectedStaff);
+    closeModal();
+    fetchStaff(); // 👈 Reload lại danh sách
+  } catch (error) {
+    console.error("Lỗi cập nhật nhân viên:", error);
+  }
+}
+
+
 
   return (
     <div className="p-4">
@@ -154,11 +187,14 @@ export default function StaffTable({ token }: Props) {
                   className="border p-2 rounded w-full text-sm"
                 />
                 <input
-                  type="date"
-                  value={newStaffData.dob || ""}
-                  onChange={(e) => setNewStaffData({ ...newStaffData, dob: e.target.value })}
-                  className="border p-2 rounded w-full text-sm"
-                />
+                    type="date"
+                    onChange={(e) =>{
+                      const updatedDob = convertDate(e.target.value, false);
+                      setNewStaffData({ ...newStaffData, dob: updatedDob });
+                      console.log("DOB:", newStaffData.dob);
+                    }
+                    }
+                  />
                 <select
                   value={newStaffData.status || "active"}
                   onChange={(e) =>
@@ -166,10 +202,10 @@ export default function StaffTable({ token }: Props) {
                   }
                   className="border p-2 rounded w-full text-sm"
                 >
-                  <option value="active">Đang làm</option>
-                  <option value="resigned">Đã nghỉ</option>
-                  <option value="terminated">Đuổi việc</option>
-                  <option value="retired">Nghỉ hưu</option>
+                  <option value="ACTIVE">Đang làm</option>
+                  <option value="RESIGNED">Đã nghỉ</option>
+                  <option value="TERMINATED">Đuổi việc</option>
+                  <option value="RETIRED">Nghỉ hưu</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-4">
@@ -190,33 +226,63 @@ export default function StaffTable({ token }: Props) {
           </div>
         )}
       </div>
-      <div className="flex flex-wrap gap-2 mb-4">
-        <select onChange={(e) => setTeamId(e.target.value)} className="border px-2 py-1">
+      <div className="flex flex-wrap gap-2 mb-4 items-end">
+        {/* Dropdown Team */}
+        <select
+          value={teamId ?? ""}
+          onChange={(e) => setTeamId(e.target.value)}
+          className="border px-3 h-10 rounded"
+        >
           <option value="">Tất cả team</option>
           {teamOptions.map((team) => (
-            <option key={team.id} value={team.id}>{team.name}</option>
+            <option key={team.id} value={team.id}>
+              {team.name}
+            </option>
           ))}
         </select>
 
-        <select onChange={(e) => setSearchBy(e.target.value)} className="border px-2 py-1">
-          {searchFields.map((field) => (
-            <option key={field} value={field}>{field}</option>
-          ))}
-        </select>
-        <select onChange={(e) => setSortBy(e.target.value)} className="border px-2 py-1">
-          {sortFields.map((field) => (
-            <option key={field} value={field}>{field}</option>
-          ))}
-        </select>
+        {/* Dropdown 1 - Search Field */}
+        <div className="flex flex-col">
+          <select className="w-48 border px-3 h-10 rounded text-sm"
+            onChange={(e) => setEmployeeStatus(e.target.value)}
+          >
+            <option disabled selected>-- Chọn --</option>
+            <option value="ACTIVE"> Đang làm việc</option>
+            <option value="RESIGNED">Đã nghỉ việc</option>
+            <option value="TERMINATED">Bị đuổi việc</option>
+            <option value="RETIRED">Đã nghỉ hưu</option>
+          </select>
+        </div>
+
+        {/* Dropdown 2 - Sort Field */}
+        <div className="flex flex-col">
+          <select className="w-48 border px-3 h-10 rounded text-sm"
+            onChange={(e) => setSearchBy(e.target.value)}
+          >
+            <option disabled selected>-- Chọn --</option>
+            <option value="name">Họ và tên</option>
+            <option value="email">Email</option>
+            <option value="dob">Ngày sinh</option>
+            <option value="phone_number">Số điện thoại</option>
+            <option value="team_name">Phòng ban</option>
+            <option value="position">Vị trí</option>
+            <option value="status">Trạng thái</option>
+          </select>
+        </div>
+
+        {/* Input */}
         <input
           type="text"
           placeholder="Tìm kiếm..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          className="border px-2 py-1"
+          className="border px-3 h-10 rounded"
         />
 
-        <Button onClick={handleSearch}>Tìm kiếm</Button>
+        {/* Button */}
+        <Button className="h-10 px-4" onClick={handleSearch}>
+          Tìm kiếm
+        </Button>
       </div>
 
       <table className="w-full border border-gray-300">
@@ -224,17 +290,18 @@ export default function StaffTable({ token }: Props) {
           <tr>
             {[  
               { key: "ID", label: "STT" },
-              { key: "name", label: "Tên" },
+              { key: "name", label: "Họ và Tên" },
               { key: "username", label: "Username" },
               { key: "email", label: "Email" },
-              { key: "phone_number", label: "SĐT" },
-              { key: "dob", label: "DOB" },
-              { key: "team_name", label: "Team" },
+              { key: "phone_number", label: "Số điện thoại" },
+              { key: "dob", label: "Ngày sinh" },
+              { key: "team_name", label: "Phòng ban" },
               { key: "position", label: "Vị trí" },
               { key: "address", label: "Địa chỉ" },
               { key: "status", label: "Trạng thái" },
-              { key: "is_working", label: "Đang làm việc" },
               { key: "actions", label: "Hành động" },
+              { key: "is_working", label: "" },
+              
             ].map(({ key, label }) => (
               <th
                 key={key}
@@ -251,7 +318,7 @@ export default function StaffTable({ token }: Props) {
         </thead>
         <tbody>
           {staffList.map((staff, index) => (
-            <tr key={staff._id ?? `${staff.email}-${index}`} className="text-center">
+            <tr key={staff.id ?? `${staff.email}-${index}`} className="text-center">
               <td className="border px-2 py-1">{(page - 1) * pageSize + index + 1}</td>
               <td className="border px-2 py-1">{staff.name}</td>
               <td className="border px-2 py-1">{staff.username}</td>
@@ -262,14 +329,7 @@ export default function StaffTable({ token }: Props) {
               <td className="border px-2 py-1">{staff.position || "-"}</td>
               <td className="border px-2 py-1">{staff.address || "-"}</td>
               <td className="border px-2 py-1">{staff.status}</td>
-              <td className="border px-2 py-1">
-                <div
-                  className={`w-3 h-3 rounded-full mx-auto ${
-                    staff.is_working ? "bg-green-500" : "bg-red-500"
-                  }`}
-                  title={staff.is_working ? "Đang làm việc" : "Không làm việc"}
-                ></div>
-              </td>
+              
               <td className="border px-2 py-1 flex justify-center gap-2">
                 <button
                   onClick={() => handleEdit(staff)}
@@ -279,6 +339,14 @@ export default function StaffTable({ token }: Props) {
                   <FontAwesomeIcon icon={faPenToSquare} className="text-blue-600" />
                 </button>
                 
+              </td>
+              <td className="border px-2 py-1">
+                <div
+                  className={`w-3 h-3 rounded-full mx-auto ${
+                    staff.is_working ? "bg-green-500" : "bg-red-500"
+                  }`}
+                  title={staff.is_working ? "Đang làm việc" : "Không làm việc"}
+                ></div>
               </td>
             </tr>
           ))}
@@ -303,16 +371,111 @@ export default function StaffTable({ token }: Props) {
         </button>
       </div>
 
-      {isOpen && selectedStaff && (
-        <Modal isOpen={isOpen} onClose={closeModal}>
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">Chỉnh sửa nhân viên</h2>
-            <p><strong>Tên:</strong> {selectedStaff.name}</p>
-            <p><strong>Email:</strong> {selectedStaff.email}</p>
-            <Button onClick={closeModal} className="mt-4">Đóng</Button>
+      
+    {isOpen && selectedStaff && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        {/* Nền mờ */}
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+          onClick={closeModal}
+        ></div>
+
+        {/* Nội dung popup */}
+        <div className="relative bg-white rounded-xl shadow-xl p-6 w-full max-w-md z-[9999]">
+          <button
+            onClick={closeModal}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+          >
+            ✕
+          </button>
+          <h2 className="text-xl font-semibold mb-4">Chỉnh sửa thông tin nhân viên</h2>
+
+          <div className="space-y-3">
+            <input
+              type="text"
+              placeholder="Họ tên"
+              value={selectedStaff.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={selectedStaff.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="text"
+              placeholder="Số điện thoại"
+              value={selectedStaff.phone_number}
+              onChange={(e) => handleInputChange("phone_number", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="text"
+              placeholder="Địa chỉ"
+              value={selectedStaff.address || ""}
+              onChange={(e) => handleInputChange("address", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="date"
+              value={selectedStaff.dob}
+              onChange={(e) => handleInputChange("dob", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="text"
+              placeholder="Vị trí"
+              value={selectedStaff.position || ""}
+              onChange={(e) => handleInputChange("position", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <input
+              type="text"
+              placeholder="Tên nhóm"
+              value={selectedStaff.team_name || ""}
+              onChange={(e) => handleInputChange("team_name", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            />
+
+            <select
+              value={selectedStaff.status}
+              onChange={(e) => handleInputChange("status", e.target.value)}
+              className="border p-2 rounded w-full text-sm"
+            >
+              <option value="ACTIVE">Đang làm</option>
+              <option value="RESIGNED">Đã nghỉ</option>
+              <option value="TERMINATED">Đuổi việc</option>
+              <option value="RETIRED">Nghỉ hưu</option>
+            </select>
+
           </div>
-        </Modal>
-      )}
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              onClick={closeModal}
+              className="bg-gray-300 px-4 py-1.5 text-sm rounded"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={handleSaveStaff}
+              className="bg-green-500 text-white px-4 py-1.5 text-sm rounded"
+            >
+              Lưu
+            </Button>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Staff } from "../types/staff";
 
-const BASE_URL = "https://tone-elections-shops-clarke.trycloudflare.com/";
+const BASE_URL = "https://gras-horse-iron-neural.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
@@ -69,7 +69,8 @@ export async function changePassword(data: { old_password: string; new_password:
 
 // 🟢 4. Cập nhật nhân viên (Admin)
 export async function updateStaff(employeeId: string, updatedData: Partial<Staff>, token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/admin/update-employee/${employeeId}`, {
+  console.log("update date:", updatedData);
+  const res = await fetch(`${BASE_URL}employee/admin/update-employee/${updatedData.id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -91,7 +92,8 @@ export async function getAllStaff(
   searchBy?: string,
   searchValue?: string,
   sortBy?: string,
-  sortOrder?: "ASC" | "DESC"
+  sortOrder?: "ASC" | "DESC",
+  employeeStatus?: string
 ): Promise<{ employees: Staff[]; total_pages: number }> {
   const query = new URLSearchParams();
 
@@ -105,11 +107,11 @@ export async function getAllStaff(
   }
   if (sortBy) query.append("sort_by", sortBy);
   if (sortOrder) query.append("sort_value", sortOrder);
-
+  if (employeeStatus) query.append("employee_status", employeeStatus);
   const res = await fetch(`${BASE_URL}employee/get-employees?${query.toString()}`, {
     headers: {
-      Authorization: `Bearer ${token}`,
-      "ngrok-skip-browser-warning": "true",
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
     },
   });
 

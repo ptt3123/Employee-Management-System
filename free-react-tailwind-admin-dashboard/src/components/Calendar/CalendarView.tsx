@@ -28,7 +28,7 @@ const CalendarView = () => {
     setShiftType,
     selectedEvent,
     isOpen,
-    openModal,
+    // openModal,
     closeModal,
     formatTime,
   } = useCalendar();
