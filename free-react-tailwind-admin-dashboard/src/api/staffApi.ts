@@ -1,6 +1,6 @@
 import { Staff } from "../types/staff";
 
-const BASE_URL = "https://gras-horse-iron-neural.trycloudflare.com/";
+const BASE_URL = "https://tires-genesis-gel-summit.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
@@ -141,4 +141,52 @@ export async function getAllStaff(
   }));
 
   return { employees, total_pages: totalPages };
+}
+
+// 🟢 6. Lấy thông tin profile nhân viên (dùng cho phân quyền, hiển thị thông tin cá nhân)
+export async function getEmployeeProfile(token: string): Promise<any> {
+  const res = await fetch(`${BASE_URL}employee/get-profile`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const json = await res.json();
+
+  if (!res.ok || !json.success || !json.data) {
+    throw new Error(json.error || "Không thể lấy thông tin profile.");
+  }
+
+  return json.data;
+}
+// 🟢 7. Cập nhật thông tin profile nhân viên (employee/update-profile)
+export async function updateEmployeeProfile(
+  data: {
+    name: string;
+    email: string;
+    phone_number: string;
+    dob: string;
+    address: string;
+    password: string;
+  },
+  token: string
+): Promise<any> {
+  const res = await fetch(`${BASE_URL}employee/update-profile`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  const json = await res.json();
+
+  if (!res.ok || !json.success) {
+    throw new Error(json.error || "Không thể cập nhật thông tin profile.");
+  }
+
+  return json.data;
 }
