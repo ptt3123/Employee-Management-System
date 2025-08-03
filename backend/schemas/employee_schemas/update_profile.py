@@ -16,5 +16,7 @@ class UpdateProfile(EmployeeBase):
 
     @model_validator(mode="after")
     def validate_update_employee(self):
-        if len(self.phone_number) != 10:
+        if self.phone_number and len(self.phone_number) != 10:
             raise ValueError("Phone number must be 10 digits")
+
+        return self

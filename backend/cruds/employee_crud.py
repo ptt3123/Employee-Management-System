@@ -10,6 +10,7 @@ from schemas.employee_schemas.employee_schema import EmployeeCreate, EmployeeUpd
 from schemas.employee_schemas.get_employees import GetEmployees
 from datetime import date
 
+from utils.hash_password import hash_password
 from schemas.employee_schemas.get_employees_respone import EmployeesResponse
 from schemas.employee_schemas.update_profile import UpdateProfile
 
@@ -204,8 +205,12 @@ async def employee_update_profile_crud(
         if not employee: raise EmployeeNotFoundException
 
         for key, value in update_data.model_dump().items():
-            if value:
+            if value and key != 'password':
                 setattr(employee, key, value)
+                
+            if key == 'password':
+                hashed_password = hash_password(update_data.password)
+                setattr(employee, key, hashed_password)
 
         await db.commit()
         await db.refresh(employee)

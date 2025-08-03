@@ -19,7 +19,7 @@ async def get_quantity_rest_day(
         db:AsyncSession = Depends(get_db)
     ):
     if employee_infor.employee_role == EmployeeRole.STAFF:
-        if employee_infor.employee_id == employee_id:
+        if employee_infor.id != employee_id:
             raise UnauthorizedException
 
     result = await get_quantity_rest_day_crud(employee_id, db)

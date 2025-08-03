@@ -1,4 +1,6 @@
 from typing import Optional
+
+from asyncpg.pgproto.pgproto import timedelta
 from pydantic import BaseModel, model_validator
 from datetime import date
 from enums import RequestType, RequestStatus, EmployeeStatus, SortValue
@@ -23,6 +25,9 @@ class LeaveRequestCreate(LeaveRequestBase):
         if self.end_date < self.start_date:
             raise ValueError('End date must be after start date')
 
+        if self.start_date > date.today() + timedelta(days=30):
+            raise ValueError('Just request in 30 days')
+
         return self
 
 
@@ -46,6 +51,9 @@ class LeaveRequestUpdate(LeaveRequestBase):
 
         if self.end_date and self.end_date < self.start_date:
             raise ValueError('End date must be after start date')
+
+        if self.start_date > date.today() + timedelta(days=30):
+            raise ValueError('Just request in 30 days')
 
         return self
 

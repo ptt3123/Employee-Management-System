@@ -59,7 +59,10 @@ async def admin_get_leave_request_crud(
     if params.page < 1 or params.page_size < 1:
         raise InvalidPaginationException
 
-    stmt =select(LeaveRequest).join(
+    stmt =select(
+        LeaveRequest,
+        Employee.name, Employee.email, Employee.phone_number, Employee.address, Employee.position
+    ).join(
         Employee,
         (Employee.id == LeaveRequest.employee_id)
         & (Employee.status == EmployeeStatus.ACTIVE)
@@ -88,13 +91,28 @@ async def admin_get_leave_request_crud(
     stmt = stmt.offset(skip).limit(params.page_size)
 
     result = await db.execute(stmt)
-    leave_quests = result.scalars().all()
+    leave_quests_result = result.all()
+
+    leave_quests = []
+    for request, name, email, phone_number, address, position in leave_quests_result:
+        leave_quests.append(
+            {
+                **jsonable_encoder(request),
+                "employee": {
+                    "name": name,
+                    "email": email,
+                    "phone_number": phone_number,
+                    "address": address,
+                    "position": position
+                }
+            }
+        )
 
     return {
         'total_leave_requests': total_leave_requests,
         'total_pages': total_pages,
         'current_page': params.page,
-        'leave_requests': jsonable_encoder(leave_quests)
+        'leave_requests': leave_quests
     }
 
 
@@ -217,7 +235,7 @@ async def leave_request_update_status_crud(
             )
         else:
             stmt = select(LeaveRequest).where(
-                LeaveRequest.employee_id == employee_infor.employee_id,
+                LeaveRequest.employee_id == employee_infor.id,
                 LeaveRequest.id == request_id
             )
 
