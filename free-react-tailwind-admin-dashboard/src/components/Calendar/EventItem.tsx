@@ -1,14 +1,22 @@
-
 const EventItem = ({ eventInfo }: { eventInfo: any }) => {
-  const shiftType = eventInfo.event.extendedProps.shiftType;
-  const bgColor = shiftType === "morning" ? "bg-green-100" : "bg-purple-100";
-  const order = shiftType === "morning" ? 0 : 1;
+  // Nếu là ngày đã đăng ký, bôi xanh toàn ô và chỉ hiện dấu tích
+  const isRegistered = eventInfo.event.extendedProps.isRegistered;
   return (
     <div
-      className={`fc-event-main text-sm px-2 py-1 rounded shadow ${bgColor}`}
-      style={{ color: "#222", minHeight: "22px", margin: "1px 0", order }}
+      className={`fc-event-main flex items-center justify-center h-full w-full rounded-lg ${isRegistered ? "bg-green-200" : ""}`}
+      style={{ minHeight: "60px" }}
     >
-      {eventInfo.event.title}
+      {isRegistered && (
+        <svg
+          className="w-8 h-8 text-green-600"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      )}
     </div>
   );
 };

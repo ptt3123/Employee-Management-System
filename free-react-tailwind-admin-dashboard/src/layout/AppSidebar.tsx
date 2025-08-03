@@ -50,7 +50,8 @@ const navItems: NavItem[] = [
   {
   name: "Quản lý nghỉ phép",
   icon: <ListIcon />,
-  path: "/form-elements",
+  path: "/leave-management",
+  
   },
   {
     name: "Quản lý lương",

@@ -1,6 +1,6 @@
 import { Staff } from "../types/staff";
 
-const BASE_URL = "https://tires-genesis-gel-summit.trycloudflare.com/";
+const BASE_URL = "https://rope-ap-brutal-colony.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
