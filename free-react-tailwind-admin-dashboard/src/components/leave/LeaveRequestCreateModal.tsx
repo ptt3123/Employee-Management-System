@@ -13,10 +13,11 @@ interface Props {
 
 const requestTypes = [
   { value: "ANNUAL", label: "Nghỉ phép năm" },
-  { value: "PAID", label: "Nghỉ phép có lương" },
-  { value: "UNPAID", label: "Nghỉ không lương" },
   { value: "MATERNITY", label: "Nghỉ thai sản" },
-  { value: "PATERNITY", label: "Nghỉ thai sản cho bố" },
+  { value: "PATERNITY", label: "Nghỉ chăm sóc con" },
+  { value: "PAID", label: "Nghỉ có lương" },
+  { value: "SICK", label: "Nghỉ ốm" },
+  { value: "UNPAID", label: "Nghỉ không lương" },
   { value: "OTHER", label: "Khác" },
 ];
 

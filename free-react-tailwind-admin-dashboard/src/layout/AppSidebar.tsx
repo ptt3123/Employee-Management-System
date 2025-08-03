@@ -3,16 +3,13 @@ import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
-  BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
   PageIcon,
-  PieChartIcon,
   PlugInIcon,
-  TableIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -29,9 +26,8 @@ const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
     name: "Trang Chủ",
-    subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+    path: "/home", 
   },
-  
   {
     icon: <UserCircleIcon />,
     name: "Hồ sơ cá nhân",
@@ -39,7 +35,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <UserCircleIcon />,
-    name: "Quản lý nhân Viên",
+    name: "Quản lý nhân viên",
     path: "/manage-staff",
   },
   {
@@ -48,52 +44,24 @@ const navItems: NavItem[] = [
     path: "/calendar",
   },
   {
-  name: "Quản lý nghỉ phép",
-  icon: <ListIcon />,
-  path: "/leave-management",
-  
+    icon: <ListIcon />,
+    name: "Quản lý nghỉ phép",
+    path: "/leave-management",
   },
   {
-    name: "Quản lý lương",
-    icon: <TableIcon />,
-    path: "/basic-tables",
-  },
-  
-  {
-    name: "Quản lý phòng ban",
     icon: <PageIcon />,
+    name: "Quản lý phòng ban",
     path: "/blank", 
   },
-  
 ];
 
 const othersItems: NavItem[] = [
   {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "UI Elements",
-    subItems: [
-      { name: "Alerts", path: "/alerts", pro: false },
-      { name: "Avatar", path: "/avatars", pro: false },
-      { name: "Badge", path: "/badge", pro: false },
-      { name: "Buttons", path: "/buttons", pro: false },
-      { name: "Images", path: "/images", pro: false },
-      { name: "Videos", path: "/videos", pro: false },
-    ],
-  },
-  {
     icon: <PlugInIcon />,
-    name: "Authentication",
+    name: "Xác thực",
     subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
+      { name: "Đăng nhập", path: "/signin", pro: false },
+      { name: "Đăng ký", path: "/signup", pro: false },
     ],
   },
 ];
@@ -314,14 +282,14 @@ const AppSidebar: React.FC = () => {
             <>
               <img
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="/images/logo/logo2.jpg"
                 alt="Logo"
                 width={150}
                 height={40}
               />
               <img
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src="/images/logo/logo2.jpg"
                 alt="Logo"
                 width={150}
                 height={40}
@@ -329,7 +297,7 @@ const AppSidebar: React.FC = () => {
             </>
           ) : (
             <img
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/logo2.jpg"
               alt="Logo"
               width={32}
               height={32}
@@ -365,7 +333,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Khác"
                 ) : (
                   <HorizontaLDots />
                 )}

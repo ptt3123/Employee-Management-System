@@ -1,6 +1,6 @@
 import { Team } from "../types/team";
 
-const BASE_URL = "https://rope-ap-brutal-colony.trycloudflare.com/"; // hoặc env
+const BASE_URL = "https://talked-camps-zinc-revenge.trycloudflare.com/"; // hoặc env
 
 export async function getTeams(token: string): Promise<Team[]> {
     console.log("token:", token);

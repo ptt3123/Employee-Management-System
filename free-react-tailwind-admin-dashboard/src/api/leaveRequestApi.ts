@@ -5,12 +5,21 @@ import {
   AdminGetLeaveRequests,
 } from "../types/leave";
 
-const BASE_URL = "https://rope-ap-brutal-colony.trycloudflare.com/";
+const BASE_URL = "https://talked-camps-zinc-revenge.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
   try {
     const errorData = await res.json();
+    console.log("API Error Response:", { status: res.status, errorData });
+
+    if (res.status === 404) {
+      throw new Error(errorData.error || "Không tìm thấy đơn nghỉ phép này");
+    }
+
+    if (res.status === 422) {
+      throw new Error(errorData.detail || "Dữ liệu không hợp lệ");
+    }
 
     if (res.status === 400 && typeof errorData.detail === "object") {
       throw errorData.detail;
@@ -20,12 +29,18 @@ async function handleApiError(res: Response): Promise<never> {
       throw new Error(errorData.detail);
     }
 
-    throw new Error("Đã xảy ra lỗi không xác định từ server.");
-  } catch {
-    throw new Error("Không thể xử lý phản hồi từ server.");
+    if (typeof errorData.error === "string") {
+      throw new Error(errorData.error);
+    }
+
+    throw new Error(`Lỗi ${res.status}: ${errorData.message || "Đã xảy ra lỗi không xác định từ server."}`);
+  } catch (parseError) {
+    if (parseError instanceof Error && parseError.message.includes("Lỗi")) {
+      throw parseError;
+    }
+    throw new Error(`Lỗi ${res.status}: Không thể xử lý phản hồi từ server.`);
   }
 }
-
 
 // 1. Lấy danh sách đơn nghỉ phép của nhân viên (API Staff)
 export async function getLeaveRequests(token: string, params?: { page: number; page_size: number }) {
@@ -34,26 +49,50 @@ export async function getLeaveRequests(token: string, params?: { page: number; p
     const query = new URLSearchParams(params as any).toString();
     url += `?${query}`;
   }
+  console.log("🌐 API Call - getLeaveRequests:", { url, params });
+  
   const res = await fetch(url, {
     method: "GET",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 getLeaveRequests response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ getLeaveRequests failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ getLeaveRequests result:", result);
+  return result;
 }
 
-// 2. Lấy số ngày phép còn lại (API Staff)
+// 2. Lấy số ngày phép (API Staff)
 export async function getQuantityRestDay(token: string) {
-  const res = await fetch(`${BASE_URL}leave-request/get_quantity_rest_day`, {
+  const url = `${BASE_URL}leave-request/get_quantity_rest_day`;
+  console.log("🌐 API Call - getQuantityRestDay:", { url });
+  
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 getQuantityRestDay response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ getQuantityRestDay failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ getQuantityRestDay result:", result);
+  return result;
 }
 
 // 3. Tạo đơn nghỉ phép (API Staff)
 export async function createLeaveRequest(token: string, data: LeaveRequestCreate) {
-  const res = await fetch(`${BASE_URL}leave-request/create-request`, {
+  const url = `${BASE_URL}leave-request/create-request`;
+  console.log("🌐 API Call - createLeaveRequest:", { url, data });
+  
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -61,27 +100,51 @@ export async function createLeaveRequest(token: string, data: LeaveRequestCreate
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 createLeaveRequest response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ createLeaveRequest failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ createLeaveRequest result:", result);
+  return result;
 }
 
-// 4. Gửi đơn nghỉ phép (thường sẽ truyền id hoặc dữ liệu update) (API Staff)
-export async function sendLeaveRequest(token: string, data: LeaveRequestUpdate) {
-  const res = await fetch(`${BASE_URL}leave-request/staff/send-request`, {
+// 4. Gửi đơn nghỉ phép (API Staff)
+export async function sendLeaveRequest(token: string, leaveRequestId: number) {
+  if (!leaveRequestId || leaveRequestId <= 0) {
+    throw new Error("ID đơn nghỉ phép không hợp lệ");
+  }
+  
+  const url = `${BASE_URL}leave-request/staff/send-request?leave_request_id=${leaveRequestId}`;
+  console.log("🌐 API Call - sendLeaveRequest:", { url, leaveRequestId });
+  
+  const res = await fetch(url, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(data),
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 sendLeaveRequest response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ sendLeaveRequest failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ sendLeaveRequest result:", result);
+  return result;
 }
 
 // 5. Cập nhật đơn nghỉ phép (API Staff)
 export async function updateLeaveRequest(token: string, data: LeaveRequestUpdate) {
-  const res = await fetch(`${BASE_URL}leave-request/staff/update-request`, {
+  const url = `${BASE_URL}leave-request/staff/update-request`;
+  console.log("🌐 API Call - updateLeaveRequest:", { url, data });
+  
+  const res = await fetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -89,18 +152,41 @@ export async function updateLeaveRequest(token: string, data: LeaveRequestUpdate
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 updateLeaveRequest response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ updateLeaveRequest failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ updateLeaveRequest result:", result);
+  return result;
 }
 
 // 6. Xóa đơn nghỉ phép (API Staff)
 export async function deleteLeaveRequest(token: string, leaveRequestId: string) {
-  const res = await fetch(`${BASE_URL}leave-request/staff/delete-leave-request/${leaveRequestId}`, {
+  if (!leaveRequestId || leaveRequestId.trim() === "") {
+    throw new Error("ID đơn nghỉ phép không hợp lệ");
+  }
+  
+  const url = `${BASE_URL}leave-request/staff/delete-leave-request/${leaveRequestId}`;
+  console.log("🌐 API Call - deleteLeaveRequest:", { url, leaveRequestId });
+  
+  const res = await fetch(url, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 deleteLeaveRequest response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ deleteLeaveRequest failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ deleteLeaveRequest result:", result);
+  return result;
 }
 
 // 7. Lấy danh sách đơn nghỉ phép cho admin (có thể truyền params dạng query nếu cần) (API Admin)
@@ -110,16 +196,29 @@ export async function getAdminLeaveRequests(token: string, params?: AdminGetLeav
     const query = new URLSearchParams(params as any).toString();
     url += `?${query}`;
   }
+  console.log("🌐 API Call - getAdminLeaveRequests:", { url, params });
+  
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 getAdminLeaveRequests response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ getAdminLeaveRequests failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ getAdminLeaveRequests result:", result);
+  return result;
 }
 
 // 8. Admin xử lý đơn nghỉ phép (API Admin)
 export async function processLeaveRequest(token: string, data: AdminProcessLeaveRequest) {
-  const res = await fetch(`${BASE_URL}leave-request/admin/process-leave-request`, {
+  const url = `${BASE_URL}leave-request/admin/process-leave-request`;
+  console.log("🌐 API Call - processLeaveRequest:", { url, data });
+  
+  const res = await fetch(url, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -127,7 +226,15 @@ export async function processLeaveRequest(token: string, data: AdminProcessLeave
     },
     body: JSON.stringify(data),
   });
-  if (!res.ok) await handleApiError(res);
-  return await res.json();
+  
+  console.log("📡 processLeaveRequest response status:", res.status);
+  if (!res.ok) {
+    console.error("❌ processLeaveRequest failed with status:", res.status);
+    await handleApiError(res);
+  }
+  
+  const result = await res.json();
+  console.log("✅ processLeaveRequest result:", result);
+  return result;
 }
 

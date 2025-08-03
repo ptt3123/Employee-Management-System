@@ -1,4 +1,4 @@
-const BASE_URL = "https://rope-ap-brutal-colony.trycloudflare.com/";
+const BASE_URL = "https://talked-camps-zinc-revenge.trycloudflare.com/";
 
 export async function createDtkRegisForm(token: string, data: any) {
   const res = await fetch(`${BASE_URL}dtk/create_dtk_regis_form`, {

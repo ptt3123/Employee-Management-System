@@ -17,28 +17,73 @@ export default function LeaveRequestManager() {
   const itemsPerPage = 10;
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+  
+  // Filter states - chỉ 4 fields theo API docs
+  const [filters, setFilters] = useState({
+    type: "",
+    leave_request_status: "",
+    sort_by: "",
+    sort_value: "DESC" as "ASC" | "DESC",
+  });
 
   // Lấy danh sách đơn nghỉ phép cho admin
   const fetchLeaveRequests = async () => {
     if (!accessToken) return;
     setLoading(true);
     try {
-      const res = await getAdminLeaveRequests(accessToken, { page: currentPage, page_size: itemsPerPage });
+      console.log("🔄 Admin đang gọi API getAdminLeaveRequests...");
+      
+      // Chỉ sử dụng 4 parameters được hỗ trợ
+      const apiParams: any = { 
+        page: currentPage, 
+        page_size: itemsPerPage 
+      };
+      
+      // Chỉ thêm filter nếu có giá trị
+      if (filters.type) apiParams.type = filters.type;
+      if (filters.leave_request_status) apiParams.leave_request_status = filters.leave_request_status;
+      if (filters.sort_by) apiParams.sort_by = filters.sort_by;
+      if (filters.sort_value) apiParams.sort_value = filters.sort_value;
+      
+      console.log("📤 Sending params to API:", apiParams);
+      
+      const res = await getAdminLeaveRequests(accessToken, apiParams);
+      
+      console.log("📋 Dữ liệu admin nhận được từ API:", res);
+      
+      // API trả về structure: { success: true, data: { leave_requests: [...] } }
       const data = res.data || {};
-      setLeaveRequests(
-        Array.isArray(data.leave_requests)
-          ? data.leave_requests.map((req: any) => ({
-              ...req,
-              employeeName: req.employee_name || `ID: ${req.employee_id}`,
-              status: req.status.toUpperCase() as RequestStatus,
-              approver: req.manager_id ? `ID: ${req.manager_id}` : "--", // Thêm dòng này
-            }))
-          : []
-      );
+      
+      const mappedRequests = Array.isArray(data.leave_requests)
+        ? data.leave_requests.map((req: any) => ({
+            id: req.id,
+            employee_id: req.employee_id,
+            // employee_name: req.employee_name || `Nhân viên #${req.employee_id}`,
+            // employeeName: req.employee_name || `Nhân viên #${req.employee_id}`,
+            manager_id: req.manager_id, // Có thể null
+            approver: req.manager_id ? `Manager #${req.manager_id}` : "--",
+            create_date: req.create_date,
+            start_date: req.start_date,
+            end_date: req.end_date,
+            type: req.type,
+            status: req.status as RequestStatus,
+            detail: req.detail,
+            update_date: req.update_date,
+          }))
+        : [];
+        
+      console.log("🏷️ Danh sách đơn nghỉ phép admin sau khi map:", mappedRequests);
+      console.log("🔍 Trạng thái của từng đơn (admin):", mappedRequests.map((req: any) => ({ id: req.id, status: req.status })));
+      
+      setLeaveRequests(mappedRequests);
       setTotalPages(data.total_pages || 1);
-    } catch {
+    } catch (error: any) {
+      console.error("❌ Error fetching admin leave requests:", error);
       setLeaveRequests([]);
       setTotalPages(1);
+      
+      // Hiển thị thông báo lỗi cho admin
+      alert("Không thể tải danh sách đơn nghỉ phép: " + (error.message || "Lỗi không xác định"));
     } finally {
       setLoading(false);
     }
@@ -47,16 +92,32 @@ export default function LeaveRequestManager() {
   useEffect(() => {
     fetchLeaveRequests();
     // eslint-disable-next-line
-  }, [accessToken, currentPage, itemsPerPage]);
+  }, [accessToken, currentPage, itemsPerPage, filters]);
+
+  // Reset về trang 1 khi filter thay đổi
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setCurrentPage(1);
+  };
+
+  
 
   // Admin xử lý trạng thái đơn nghỉ phép
   const handleProcessStatus = async (id: number, newStatus: RequestStatus) => {
     if (!accessToken) return;
     try {
-      await processLeaveRequest(accessToken, { id, status: newStatus });
-      fetchLeaveRequests();
+      console.log("🚀 Admin đang xử lý đơn với ID:", id, "-> trạng thái mới:", newStatus);
+      const result = await processLeaveRequest(accessToken, { id, status: newStatus });
+      console.log("✅ Admin xử lý đơn thành công, kết quả:", result);
+      
+      console.log("🔄 Đang reload danh sách đơn nghỉ phép...");
+      await fetchLeaveRequests();
+      console.log("✅ Đã reload xong danh sách");
+      
+      alert(`Đã ${newStatus === 'APPROVED' ? 'phê duyệt' : newStatus === 'REJECTED' ? 'từ chối' : 'cập nhật'} đơn thành công!`);
     } catch (err: any) {
-      alert("Xử lý đơn thất bại: " + err.message);
+      console.error("❌ Admin process failed:", err);
+      alert("Xử lý đơn thất bại: " + (err.message || "Lỗi không xác định"));
     }
   };
 
@@ -75,10 +136,92 @@ export default function LeaveRequestManager() {
     }
   };
 
+  // Hàm chuyển đổi loại nghỉ phép sang tiếng Việt
+  const getLeaveTypeText = (type: string) => {
+    switch (type) {
+      case "ANNUAL":
+        return "Nghỉ phép năm";
+      case "UNPAID":
+        return "Nghỉ không lương";
+      case "MATERNITY":
+        return "Nghỉ thai sản";
+      case "PATERNITY":
+        return "Nghỉ chăm sóc con";
+      case "SICK":
+        return "Nghỉ ốm";
+      case "OTHER":
+        return "Khác";
+      default:
+        return type;
+    }
+  };
+
   const paginatedData = leaveRequests; // backend đã phân trang
 
   return (
     <div className="p-6 font-sans">
+      {/* Filter Form - Chỉ 4 fields được API hỗ trợ */}
+      <div className="bg-gray-50 p-4 rounded-lg mb-6">
+        <h3 className="text-lg font-semibold mb-4"></h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Loại nghỉ phép</label>
+            <select
+              value={filters.type}
+              onChange={(e) => handleFilterChange('type', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Tất cả</option>
+              <option value="ANNUAL">Nghỉ phép năm</option>
+              <option value="SICK">Nghỉ ốm</option>
+              <option value="MATERNITY">Nghỉ thai sản</option>
+              <option value="PATERNITY">Nghỉ chăm sóc con</option>
+              <option value="UNPAID">Nghỉ không lương</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Trạng thái</label>
+            <select
+              value={filters.leave_request_status}
+              onChange={(e) => handleFilterChange('leave_request_status', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Tất cả</option>
+              <option value="WAITING">Đang chờ</option>
+              <option value="PENDING">Chờ xác nhận</option>
+              <option value="APPROVED">Đã xác nhận</option>
+              <option value="REJECTED">Từ chối</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Sắp xếp theo</label>
+            <select
+              value={filters.sort_by}
+              onChange={(e) => handleFilterChange('sort_by', e.target.value)}
+              className="w-full border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Mặc định</option>
+              <option value="create_date">Ngày tạo</option>
+              <option value="start_date">Ngày bắt đầu</option>
+              <option value="status">Trạng thái</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Thứ tự</label>
+            <select
+              value={filters.sort_value}
+              onChange={(e) => handleFilterChange('sort_value', e.target.value as "ASC" | "DESC")}
+              className="w-full border rounded px-3 py-2 text-sm"
+            >
+              <option value="DESC">Giảm dần</option>
+              <option value="ASC">Tăng dần</option>
+            </select>
+          </div>
+        </div>
+        
+      </div>
+
       <div className="overflow-x-auto">
         {loading ? (
           <div className="text-center py-8">Đang tải dữ liệu...</div>
@@ -93,6 +236,7 @@ export default function LeaveRequestManager() {
                 <th className="border px-4 py-2 text-center">Trạng thái</th>
                 <th className="border px-4 py-2 text-center">Chi tiết</th>
                 <th className="border px-4 py-2 text-center">Người kiểm duyệt</th>
+
               </tr>
             </thead>
             <tbody>
@@ -101,7 +245,7 @@ export default function LeaveRequestManager() {
                   <td className="border px-4 py-2 text-center">{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td className="border px-4 py-2 text-center">{req.employeeName}</td>
                   <td className="border px-4 py-2 text-center">{req.create_date}</td>
-                  <td className="border px-4 py-2 text-center">{req.type}</td>
+                  <td className="border px-4 py-2 text-center">{getLeaveTypeText(req.type)}</td>
                   <td className="border px-4 py-2 text-center">
                     <select
                       value={req.status}
@@ -130,7 +274,11 @@ export default function LeaveRequestManager() {
                     </button>
                   </td>
                   <td className="border px-4 py-2 text-center">
-                    {req.status === "PENDING" ? "--" : req.manager_id ? `ID: ${req.manager_id}` : "--"}
+                    {req.status === "WAITING" 
+                      ? "--" 
+                      : req.manager_id 
+                        ? `Manager #${req.manager_id}` 
+                        : "Chưa phân công"}
                   </td>
                 </tr>
               ))}
@@ -167,7 +315,7 @@ export default function LeaveRequestManager() {
             <div className="space-y-4 text-gray-700">
               <div><span className="font-semibold">👤 Họ và tên:</span> {selectedRequest.employeeName}</div>
               <div><span className="font-semibold">📅 Xin nghỉ từ:</span> {selectedRequest.start_date} đến {selectedRequest.end_date}</div>
-              <div><span className="font-semibold">📂 Loại nghỉ:</span> {selectedRequest.type}</div>
+              <div><span className="font-semibold">📂 Loại nghỉ:</span> {getLeaveTypeText(selectedRequest.type)}</div>
               <div><span className="font-semibold">📝 Lý do:</span> {selectedRequest.detail}</div>
               <div><span className="font-semibold">📌 Trạng thái:</span> {renderStatus(selectedRequest.status)}</div>
               <div><span className="font-semibold">✔️ Người duyệt:</span> {selectedRequest.status === "PENDING" ? "--" : selectedRequest.approver}</div>

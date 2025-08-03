@@ -17,7 +17,7 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import Home from "./pages/Dashboard/Home";
+import StaffDashboard from "./components/dashboard/StaffDashboard";
 import ManageStaff from './components/ManageStaff/ManageStaff';
 import { useContext } from "react";
 import { AppContext } from "./context/AppContext";
@@ -39,7 +39,7 @@ export default function App() {
           <Route element={<AppLayout />}>
             
             {/* <Route path="/signin" element={<SignIn />} /> */}
-            <Route index path="/home" element={<Home />} />
+            <Route index path="/home" element={<StaffDashboard />} />
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />
