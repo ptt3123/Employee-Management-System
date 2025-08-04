@@ -9,6 +9,11 @@ class HasRegisteredNextWeekException(Exception):
         self.message = message
         super().__init__(message)
 
+class HasRegisteredSalaryException(Exception):
+    def __init__(self, message: str = "Can not register new Salary again"):
+        self.message = message
+        super().__init__(message)
+
 class NoScheduleRegisteredException(Exception):
     def __init__(self, message: str = "No schedule registered for today"):
         self.message = message

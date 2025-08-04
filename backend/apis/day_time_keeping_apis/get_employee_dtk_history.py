@@ -16,10 +16,9 @@ async def get_my_dtk_history(
         db: AsyncSession = Depends(get_db)
 ):
     try:
-        result = await get_dtk_history(
-            form.employee_id, form.page, form.page_size, form.start_date, form.end_date, db)
+        result = await get_dtk_history(form.employee_id, form.year, form.month, db)
 
-        if not result.get("data"):
+        if not result:
             raise ObjectNotFoundException("Day time keeping")
 
         return result

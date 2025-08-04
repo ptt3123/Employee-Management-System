@@ -11,6 +11,8 @@ class MonthTimeKeeping(Base):
     working_hours = Column(Integer, nullable=False)
     working_days = Column(Integer, nullable=False)
     is_full_attendance = Column(Boolean, nullable=False)
+    checkin_late = Column(Integer, nullable=False)
+    checkout_early = Column(Integer, nullable=False)
 
     employee_id = Column(
         Integer, ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)
