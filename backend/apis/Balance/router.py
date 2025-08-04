@@ -1,0 +1,9 @@
+from fastapi import APIRouter
+
+from apis.Balance.get_remaining_annual_leave_days import get_remaining_annual_leave_days_router
+from apis.Balance.update_remaining_annual_days import update_remaining_annual_leave_days_router
+
+balance_router = APIRouter(prefix="/balance", tags=["Balance"])
+
+balance_router.include_router(update_remaining_annual_leave_days_router)
+balance_router.include_router(get_remaining_annual_leave_days_router)

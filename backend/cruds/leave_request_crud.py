@@ -5,12 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, extract
 from datetime import date, timedelta
 
-from entities import LeaveRequest, Employee
+from cruds.balance_crud import update_balance_crud
+from entities import LeaveRequest, Employee, Balance
 from enums import RequestStatus, EmployeeRole, EmployeeStatus
-from exceptions.exceptions import ObjectNotFoundException, RequestInProcessingException, InvalidPaginationException
+from exceptions.exceptions import ObjectNotFoundException, RequestInProcessingException, InvalidPaginationException, \
+    UnauthorizedException
 from schemas.leave_requests_schemas.leave_request_schemas import LeaveRequestCreate, LeaveRequestUpdate, \
     AdminGetLeaveRequests
 from schemas.token.InforFromToken import InforFromToken
+from config import settings
 
 
 async def get_current_leave_request_crud(leave_request_id: int, db: AsyncSession):
@@ -20,6 +23,20 @@ async def get_current_leave_request_crud(leave_request_id: int, db: AsyncSession
 
     if leave_request is None:
         raise ObjectNotFoundException('Leave Request')
+
+    return leave_request
+
+async def get_pending_leave_request(
+        employee_id: int,
+        db: AsyncSession
+    ):
+
+    stmt = select(LeaveRequest).where(
+        LeaveRequest.employee_id == employee_id,
+        LeaveRequest.status == RequestStatus.PENDING
+    )
+
+    leave_request = (await db.execute(stmt)).scalar_one_or_none()
 
     return leave_request
 
@@ -61,11 +78,17 @@ async def admin_get_leave_request_crud(
 
     stmt =select(
         LeaveRequest,
-        Employee.name, Employee.email, Employee.phone_number, Employee.address, Employee.position
+        Employee.name, Employee.email, Employee.phone_number, Employee.address, Employee.position,
+        Balance.balance
     ).join(
         Employee,
         (Employee.id == LeaveRequest.employee_id)
         & (Employee.status == EmployeeStatus.ACTIVE)
+    ).join(
+        Balance,
+        (Balance.employee_id == Employee.id)
+        & (Balance.year == (params.start_date.year if params.start_date else date.today().year))
+        , isouter=True
     ).where(LeaveRequest.status == params.leave_request_status)
 
     if params.name:
@@ -94,7 +117,7 @@ async def admin_get_leave_request_crud(
     leave_quests_result = result.all()
 
     leave_quests = []
-    for request, name, email, phone_number, address, position in leave_quests_result:
+    for request, name, email, phone_number, address, position, balance in leave_quests_result:
         leave_quests.append(
             {
                 **jsonable_encoder(request),
@@ -104,7 +127,8 @@ async def admin_get_leave_request_crud(
                     "phone_number": phone_number,
                     "address": address,
                     "position": position
-                }
+                },
+                "balance": balance if balance else settings.remaining_annual_leave_days
             }
         )
 
@@ -243,11 +267,46 @@ async def leave_request_update_status_crud(
         if not leave_request:
             raise ObjectNotFoundException('Leave Request')
 
-        leave_request.status = request_status
-        if employee_infor.employee_role != EmployeeRole.STAFF:
-            if request_status != RequestStatus.PENDING:
+        if employee_infor.employee_role == EmployeeRole.STAFF:
+            if request_status in [RequestStatus.APPROVED, RequestStatus.REJECTED]:
+                raise UnauthorizedException
+
+        else:
+            if leave_request.status != RequestStatus.PENDING:
                 raise HTTPException(status_code=403, detail='The request has been processed.')
             leave_request.manager_id = employee_infor.id
+
+        if request_status == RequestStatus.APPROVED:
+            start_date = leave_request.start_date
+            end_date = leave_request.end_date
+
+            if leave_request.end_date.year > leave_request.start_date.year:
+                days_in_start_year = date(start_date.year, 12, 31) - start_date
+                days_in_end_year = end_date - date(end_date.year,1, 1)
+                await update_balance_crud(
+                    leave_request.employee_id,
+                    start_date.year,
+                    days_in_start_year.days+1,
+                    db
+                )
+
+                await update_balance_crud(
+                    leave_request.employee_id,
+                    end_date.year,
+                    days_in_end_year.days+1,
+                    db
+                )
+
+            else:
+                total_date_request = end_date - start_date
+                await update_balance_crud(
+                    leave_request.employee_id,
+                    start_date.year,
+                    total_date_request.days+1,
+                    db
+                )
+
+        leave_request.status = request_status
 
         await db.commit()
         await db.refresh(leave_request)

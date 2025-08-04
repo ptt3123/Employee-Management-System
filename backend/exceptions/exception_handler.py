@@ -162,3 +162,13 @@ def object_not_found_handler(request: Request, exc: Exception) -> Response:
         content={'success': False, "error": exc.message}
     )
 
+def day_request_greater_than_remaining_annual_leave_days(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, DayRequestGreaterThanRemainingAnnualLeaveDays):
+        logger.error(f"Unexpected exception in day_request_greater_than_remaining_annual_leave_days: {str(exc)}")
+        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
+    return JSONResponse(
+        status_code=400,
+        content={'success': False, "error": exc.message}
+    )
+
+

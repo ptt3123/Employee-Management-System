@@ -2,7 +2,7 @@ from fastapi import APIRouter
 
 from apis.employee_apis.router import employee_router
 from apis.leave_request_apis.router import leave_request_router
-from apis.team_apis.router import team_router
+from apis.Balance.router import balance_router
 from apis.day_time_keeping_apis.router import dtk_router
 from apis.team_apis.router import team_router
 
@@ -13,3 +13,4 @@ router.include_router(team_router)
 router.include_router(leave_request_router)
 router.include_router(dtk_router)
 router.include_router(team_router)
+router.include_router(balance_router)

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.responses import JSONResponse
 
-from cruds.leave_request_crud import leave_request_update_status_crud
+from cruds.leave_request_crud import leave_request_update_status_crud, get_pending_leave_request
 from database import get_db
 from dependencies.get_infor_from_token import get_infor_from_token
 from enums import RequestStatus
@@ -16,6 +16,12 @@ async def send_request(
         employee_infor: InforFromToken = Depends(get_infor_from_token),
         db: AsyncSession = Depends(get_db)
     ):
+
+    if await get_pending_leave_request(employee_infor.id, db):
+        return JSONResponse(status_code=400, content={
+            'success': False,
+            'message': 'Can\'t send request when have a request which is pending',
+        })
 
     await leave_request_update_status_crud(
         leave_request_id, employee_infor, RequestStatus.PENDING, db

@@ -52,7 +52,7 @@ class LeaveRequestUpdate(LeaveRequestBase):
         if self.end_date and self.end_date < self.start_date:
             raise ValueError('End date must be after start date')
 
-        if self.start_date > date.today() + timedelta(days=30):
+        if self.start_date and self.start_date > date.today() + timedelta(days=30):
             raise ValueError('Just request in 30 days')
 
         return self
@@ -76,5 +76,8 @@ class AdminGetLeaveRequests(BaseModel):
     def validate_status(self):
         if self.leave_request_status == RequestStatus.WAITING:
             raise ValueError('Leave request must be waiting')
+
+        if (self.start_date and not self.end_date) or (self.end_date and not self.start_date):
+            raise ValueError('Fill start date and end date')
 
         return self

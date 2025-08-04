@@ -72,3 +72,8 @@ class RequestInProcessingException(Exception):
     def __init__(self, message: str = "Request is in process request"):
         self.message = message
         super().__init__(message)
+
+class DayRequestGreaterThanRemainingAnnualLeaveDays(Exception):
+    def __init__(self, message: str = "Total annual leave request is greater than the remain annual leave days"):
+        self.message = message
+        super().__init__(message)
