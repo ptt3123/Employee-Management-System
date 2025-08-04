@@ -1,14 +1,10 @@
 import  { useState } from "react";
+import { LeaveRequestCreate, RequestType } from "../../types/leave";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: {
-    start_date: string;
-    end_date: string;
-    type: string;
-    detail: string;
-  }) => void;
+  onSubmit: (data: LeaveRequestCreate) => void;
 }
 
 const requestTypes = [
@@ -16,7 +12,6 @@ const requestTypes = [
   { value: "MATERNITY", label: "Nghỉ thai sản" },
   { value: "PATERNITY", label: "Nghỉ chăm sóc con" },
   { value: "PAID", label: "Nghỉ có lương" },
-  { value: "SICK", label: "Nghỉ ốm" },
   { value: "UNPAID", label: "Nghỉ không lương" },
   { value: "OTHER", label: "Khác" },
 ];
@@ -32,7 +27,12 @@ export default function LeaveRequestCreateModal({ isOpen, onClose, onSubmit }: P
       alert("Vui lòng điền đầy đủ thông tin!");
       return;
     }
-    const payload = { start_date: startDate, end_date: endDate, type, detail };
+    const payload = { 
+      start_date: startDate, 
+      end_date: endDate, 
+      type: type as RequestType, 
+      detail 
+    };
     console.log("Payload gửi lên backend:", payload); // Thêm dòng này
     onSubmit(payload);
     setStartDate("");

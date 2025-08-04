@@ -9,13 +9,13 @@ import {
 } from "../../api/leaveRequestApi";
 import { AppContext } from "../../context/AppContext";
 import LeaveRequestCreateModal from "./LeaveRequestCreateModal";
-import { RequestType, LeaveRequest } from "../../types/leave";
+import { RequestType, LeaveRequest, LeaveRequestCreate } from "../../types/leave";
 
 const requestTypes = [
   { value: "ANNUAL", label: "Nghỉ phép năm" },
   { value: "MATERNITY", label: "Nghỉ thai sản" },
   { value: "PATERNITY", label: "Nghỉ chăm sóc con" },
-  { value: "SICK", label: "Nghỉ ốm" },
+  { value: "PAID", label: "Nghỉ có lương" },
   { value: "UNPAID", label: "Nghỉ không lương" },
   { value: "OTHER", label: "Khác" },
 ];
@@ -36,7 +36,7 @@ function EditModal({ request, onSubmit, onClose }: EditModalProps) {
   const [startDate, setStartDate] = useState(request.start_date);
   const [endDate, setEndDate] = useState(request.end_date);
   const [type, setType] = useState(request.type);
-  const [detail, setDetail] = useState(request.detail);
+  const [detail, setDetail] = useState(request.detail || ""); // Fix: Convert null to empty string
 
   const handleSubmit = () => {
     if (!startDate || !endDate || !detail) {
@@ -153,8 +153,8 @@ export default function LeaveRequestStaff() {
         return "Nghỉ thai sản";
       case "PATERNITY":
         return "Nghỉ chăm sóc con";
-      case "SICK":
-        return "Nghỉ ốm";
+      case "PAID":
+        return "Nghỉ có lương";
       case "OTHER":
         return "Khác";
       default:
@@ -271,18 +271,13 @@ export default function LeaveRequestStaff() {
   };
 
   // Hàm tạo đơn nghỉ phép
-  const handleSubmitCreate = async (data: {
-    start_date: string;
-    end_date: string;
-    type: string;
-    detail: string;
-  }) => {
+  const handleSubmitCreate = async (data: LeaveRequestCreate) => {
     if (!accessToken) return;
     try {
       const payload = {
         start_date: data.start_date,
         end_date: data.end_date,
-        type: data.type as RequestType,
+        type: data.type,
         detail: data.detail,
       };
       await createLeaveRequest(accessToken, payload);

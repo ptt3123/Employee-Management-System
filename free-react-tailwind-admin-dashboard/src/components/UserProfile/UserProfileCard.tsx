@@ -59,6 +59,21 @@ export default function UserProfileCard() {
   if (loading) return <div className="text-center py-10 text-lg">Đang tải thông tin...</div>;
   if (!profile) return <div className="text-center py-10 text-red-500">Không tìm thấy thông tin nhân viên.</div>;
 
+  // Hàm format ngày tháng
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Chưa cập nhật";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('vi-VN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return dateString; // Trả về chuỗi gốc nếu không parse được
+    }
+  };
+
   // Ảnh bìa và avatar mẫu (có thể thay bằng ảnh thật nếu backend trả về)
   const coverUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80";
   const avatarUrl = "https://ui-avatars.com/api/?name=" + encodeURIComponent(profile.name || "User") + "&background=0D8ABC&color=fff&size=128";
@@ -90,23 +105,23 @@ export default function UserProfileCard() {
         <div className="flex flex-col items-center gap-2 text-gray-800 text-base mb-4">
           <div>
             <span className="font-semibold inline-block mr-2">📧 Email:</span>
-            {profile.email}
+            {profile.email || "Chưa cập nhật"}
           </div>
           <div>
             <span className="font-semibold inline-block mr-2">🏠 Địa chỉ:</span>
-            {profile.address}
+            {profile.address || "Chưa cập nhật"}
           </div>
           <div>
             <span className="font-semibold inline-block mr-2">📅 Ngày tạo:</span>
-            {profile.create_date}
+            {formatDate(profile.create_date)}
           </div>
           <div>
             <span className="font-semibold inline-block mr-2">📱 Số điện thoại:</span>
-            {profile.phone_number}
+            {profile.phone_number || "Chưa cập nhật"}
           </div>
           <div>
             <span className="font-semibold inline-block mr-2">🎂 Ngày sinh:</span>
-            {profile.dob}
+            {formatDate(profile.dob)}
           </div>
           <div>
             <span className="font-semibold inline-block mr-2">🔖 Trạng thái:</span>

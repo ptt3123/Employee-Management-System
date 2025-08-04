@@ -17,12 +17,13 @@ import FormElements from "./pages/Forms/FormElements";
 import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
-import StaffDashboard from "./components/dashboard/StaffDashboard";
+import Home from "./pages/Dashboard/Home";
 import ManageStaff from './components/ManageStaff/ManageStaff';
 import { useContext } from "react";
 import { AppContext } from "./context/AppContext";
 import LeaveSwitcher from "./components/leave/LeaveSwitcher"; // Import the LeaveSwitcher component
 // hoặc wherever Login component nằm
+
 
 export default function App() {
   const { accessToken } = useContext(AppContext)!;
@@ -32,14 +33,15 @@ export default function App() {
   return (
     <div className="bg-gray-50 min-h-screen">
       <ScrollToTop />
-      {accessToken ? (
+      {!accessToken ? (
         <SignIn />
       ) : (
         <Routes>
           <Route element={<AppLayout />}>
             
             {/* <Route path="/signin" element={<SignIn />} /> */}
-            <Route index path="/home" element={<StaffDashboard />} />
+            <Route index path="/home" element={<Home />} />
+            
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/blank" element={<Blank />} />

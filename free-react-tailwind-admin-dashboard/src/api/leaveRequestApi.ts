@@ -5,7 +5,7 @@ import {
   AdminGetLeaveRequests,
 } from "../types/leave";
 
-const BASE_URL = "https://talked-camps-zinc-revenge.trycloudflare.com/";
+const BASE_URL = "https://provided-counseling-preferred-replacement.trycloudflare.com/";
 
 // 🛠 Hàm xử lý lỗi chung
 async function handleApiError(res: Response): Promise<never> {
@@ -46,8 +46,18 @@ async function handleApiError(res: Response): Promise<never> {
 export async function getLeaveRequests(token: string, params?: { page: number; page_size: number }) {
   let url = `${BASE_URL}leave-request/staff/get-leave-requests`;
   if (params) {
-    const query = new URLSearchParams(params as any).toString();
-    url += `?${query}`;
+    // Chỉ thêm các params có giá trị
+    const cleanParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        cleanParams[key] = String(value);
+      }
+    });
+    
+    if (Object.keys(cleanParams).length > 0) {
+      const query = new URLSearchParams(cleanParams).toString();
+      url += `?${query}`;
+    }
   }
   console.log("🌐 API Call - getLeaveRequests:", { url, params });
   
@@ -193,8 +203,21 @@ export async function deleteLeaveRequest(token: string, leaveRequestId: string) 
 export async function getAdminLeaveRequests(token: string, params?: AdminGetLeaveRequests) {
   let url = `${BASE_URL}leave-request/admin/get-requests`;
   if (params) {
-    const query = new URLSearchParams(params as any).toString();
-    url += `?${query}`;
+    // Whitelist: tất cả parameter mà backend hỗ trợ theo API docs
+    const allowedParams = ['name', 'start_date', 'end_date', 'type', 'leave_request_status', 'sort_by', 'sort_value', 'page', 'page_size'];
+    const cleanParams: Record<string, string> = {};
+    
+    Object.entries(params).forEach(([key, value]) => {
+      // Chỉ thêm nếu key được phép và có giá trị hợp lệ (không phải empty string)
+      if (allowedParams.includes(key) && value !== undefined && value !== null && String(value).trim() !== '') {
+        cleanParams[key] = String(value);
+      }
+    });
+    
+    if (Object.keys(cleanParams).length > 0) {
+      const query = new URLSearchParams(cleanParams).toString();
+      url += `?${query}`;
+    }
   }
   console.log("🌐 API Call - getAdminLeaveRequests:", { url, params });
   

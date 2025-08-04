@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, Loader2 } from "lucide-react";
 
 interface Props {
   checkInTime: string | null;
@@ -7,7 +7,7 @@ interface Props {
   onCheckIn: () => void;
   onCheckOut: () => void;
   workingStatus: string;
-  formatTime: (iso: string | null) => string;
+  loading?: boolean; // Add loading prop
 }
 
 function formatDateTime(iso: string | null) {
@@ -27,7 +27,7 @@ const CheckInOut: React.FC<Props> = ({
   onCheckIn,
   onCheckOut,
   workingStatus,
-  formatTime,
+  loading = false,
 }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
     {/* Check-in */}
@@ -44,9 +44,17 @@ const CheckInOut: React.FC<Props> = ({
       ) : (
         <button
           onClick={onCheckIn}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition"
+          disabled={loading}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Check-in
+          {loading ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              Đang xử lý...
+            </>
+          ) : (
+            'Check-in'
+          )}
         </button>
       )}
     </div>
@@ -65,9 +73,17 @@ const CheckInOut: React.FC<Props> = ({
       ) : (
         <button
           onClick={onCheckOut}
-          className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-800 transition"
+          disabled={loading}
+          className="px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          Check-out
+          {loading ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              Đang xử lý...
+            </>
+          ) : (
+            'Check-out'
+          )}
         </button>
       )}
     </div>

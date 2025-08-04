@@ -1,3 +1,4 @@
+import React from "react";
 import PageMeta from "../common/PageMeta";
 import SummaryCard from "./SummaryCard";
 import CheckInOut from "./CheckInOut";
@@ -23,15 +24,26 @@ const CalendarView = () => {
     handleEventClick,
     handleAddOrUpdateEvent,
     shiftDate,
-    shiftType,
+    shiftStart,
+    shiftEnd,
     setShiftDate,
-    setShiftType,
+    setShiftStart,
+    setShiftEnd,
     selectedEvent,
     isOpen,
     // openModal,
     closeModal,
-    formatTime,
+    loading,
+    // ✅ Add API-related props
+    isRegistered,
+    deleteSchedule,
+    checkRegistrationStatus,
   } = useCalendar();
+
+  // ✅ Initialize registration status on mount
+  React.useEffect(() => {
+    checkRegistrationStatus();
+  }, []);
 
   return (
     <>
@@ -60,6 +72,22 @@ const CalendarView = () => {
         />
         </div>
 
+      {/* ✅ Show registration status */}
+      {isRegistered && (
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-green-600">✅ Đã đăng ký lịch làm việc</span>
+            </div>
+            <button
+              onClick={deleteSchedule}
+              className="text-red-600 hover:text-red-800 text-sm underline"
+            >
+              Hủy đăng ký
+            </button>
+          </div>
+        </div>
+      )}
 
       <CheckInOut
         checkInTime={checkInTime}
@@ -67,7 +95,7 @@ const CalendarView = () => {
         onCheckIn={handleCheckIn}
         onCheckOut={handleCheckOut}
         workingStatus={calculateWorkingStatus()}
-        formatTime={formatTime}
+        loading={loading}
       />
 
       <div className="rounded-xl border border-gray-200 bg-white p-6">
@@ -99,11 +127,14 @@ const CalendarView = () => {
           isOpen={isOpen}
           onClose={closeModal}
           shiftDate={shiftDate}
-          shiftType={shiftType}
+          shiftStart={shiftStart}
+          shiftEnd={shiftEnd}
           setShiftDate={setShiftDate}
-          setShiftType={setShiftType}
+          setShiftStart={setShiftStart}
+          setShiftEnd={setShiftEnd}
           onSubmit={handleAddOrUpdateEvent}
           selectedEvent={selectedEvent}
+          isRegistered={isRegistered}
         />
       </div>
     </>

@@ -18,12 +18,13 @@ export default function LeaveRequestManager() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   
-  // Filter states - chỉ 4 fields theo API docs
+  // Filter states - đầy đủ fields backend hỗ trợ
   const [filters, setFilters] = useState({
+    name: "",
     type: "",
     leave_request_status: "",
-    sort_by: "",
-    sort_value: "DESC" as "ASC" | "DESC",
+    sort_by: "create_date", // Khôi phục sort_by
+    sort_value: "DESC" as "ASC" | "DESC", // Khôi phục sort_value
   });
 
   // Lấy danh sách đơn nghỉ phép cho admin
@@ -33,17 +34,28 @@ export default function LeaveRequestManager() {
     try {
       console.log("🔄 Admin đang gọi API getAdminLeaveRequests...");
       
-      // Chỉ sử dụng 4 parameters được hỗ trợ
+      // Tất cả parameters mà backend hỗ trợ
       const apiParams: any = { 
         page: currentPage, 
         page_size: itemsPerPage 
       };
       
-      // Chỉ thêm filter nếu có giá trị
-      if (filters.type) apiParams.type = filters.type;
-      if (filters.leave_request_status) apiParams.leave_request_status = filters.leave_request_status;
-      if (filters.sort_by) apiParams.sort_by = filters.sort_by;
-      if (filters.sort_value) apiParams.sort_value = filters.sort_value;
+      // Chỉ thêm filter nếu có giá trị và không rỗng
+      if (filters.name && filters.name.trim() !== "") {
+        apiParams.name = filters.name;
+      }
+      if (filters.type && filters.type.trim() !== "") {
+        apiParams.type = filters.type;
+      }
+      if (filters.leave_request_status && filters.leave_request_status.trim() !== "") {
+        apiParams.leave_request_status = filters.leave_request_status;
+      }
+      if (filters.sort_by && filters.sort_by.trim() !== "") {
+        apiParams.sort_by = filters.sort_by;
+      }
+      if (filters.sort_value && filters.sort_value.trim() !== "") {
+        apiParams.sort_value = filters.sort_value;
+      }
       
       console.log("📤 Sending params to API:", apiParams);
       
@@ -58,8 +70,8 @@ export default function LeaveRequestManager() {
         ? data.leave_requests.map((req: any) => ({
             id: req.id,
             employee_id: req.employee_id,
-            // employee_name: req.employee_name || `Nhân viên #${req.employee_id}`,
-            // employeeName: req.employee_name || `Nhân viên #${req.employee_id}`,
+            employee_name: req.employee?.name || `Nhân viên #${req.employee_id}`,
+            employeeName: req.employee?.name || `Nhân viên #${req.employee_id}`,
             manager_id: req.manager_id, // Có thể null
             approver: req.manager_id ? `Manager #${req.manager_id}` : "--",
             create_date: req.create_date,
@@ -69,6 +81,7 @@ export default function LeaveRequestManager() {
             status: req.status as RequestStatus,
             detail: req.detail,
             update_date: req.update_date,
+            balance: req.balance, // Thêm thông tin số ngày phép còn lại
           }))
         : [];
         
@@ -147,8 +160,8 @@ export default function LeaveRequestManager() {
         return "Nghỉ thai sản";
       case "PATERNITY":
         return "Nghỉ chăm sóc con";
-      case "SICK":
-        return "Nghỉ ốm";
+      case "PAID":
+        return "Nghỉ có lương";
       case "OTHER":
         return "Khác";
       default:
@@ -162,8 +175,18 @@ export default function LeaveRequestManager() {
     <div className="p-6 font-sans">
       {/* Filter Form - Chỉ 4 fields được API hỗ trợ */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
-        <h3 className="text-lg font-semibold mb-4"></h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <h3 className="text-lg font-semibold mb-4">Bộ lọc đơn nghỉ phép</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Tên nhân viên</label>
+            <input
+              type="text"
+              value={filters.name}
+              onChange={(e) => handleFilterChange('name', e.target.value)}
+              placeholder="Nhập tên nhân viên..."
+              className="w-full border rounded px-3 py-2 text-sm"
+            />
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1">Loại nghỉ phép</label>
             <select
@@ -173,7 +196,7 @@ export default function LeaveRequestManager() {
             >
               <option value="">Tất cả</option>
               <option value="ANNUAL">Nghỉ phép năm</option>
-              <option value="SICK">Nghỉ ốm</option>
+              <option value="PAID">Nghỉ có lương</option>
               <option value="MATERNITY">Nghỉ thai sản</option>
               <option value="PATERNITY">Nghỉ chăm sóc con</option>
               <option value="UNPAID">Nghỉ không lương</option>
@@ -256,13 +279,21 @@ export default function LeaveRequestManager() {
                           ? "bg-yellow-100 text-yellow-700"
                           : req.status === "APPROVED"
                           ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700")
+                          : req.status === "REJECTED"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700")
                       }
+                      disabled={req.status === "WAITING"} // Không cho phép thay đổi nếu đang WAITING
                     >
-                      <option value="PENDING">Chờ xác nhận</option>
-                      <option value="APPROVED">Đã xác nhận</option>
-                      <option value="REJECTED">Từ chối</option>
-                      <option value="WAITING">Đang chờ</option>
+                      {req.status === "WAITING" ? (
+                        <option value="WAITING">Đang chờ gửi</option>
+                      ) : (
+                        <>
+                          <option value="PENDING">Chờ xác nhận</option>
+                          <option value="APPROVED">Đã xác nhận</option>
+                          <option value="REJECTED">Từ chối</option>
+                        </>
+                      )}
                     </select>
                   </td>
                   <td className="border px-4 py-2 text-center">
