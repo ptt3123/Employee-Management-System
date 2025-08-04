@@ -9,7 +9,7 @@ class Salary(Base):
     allowance = Column(Integer, nullable=False)
     reward = Column(Integer, nullable=False)
     create_date = Column(DateTime, server_default=func.now())
-    update_date = Column(DateTime, nullable=True, server_onupdate=func.now())
+    update_date = Column(DateTime, nullable=True, onupdate=func.now())
     detail = Column(String(255), nullable=True)
 
     employee_id = Column(

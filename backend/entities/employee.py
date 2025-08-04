@@ -15,7 +15,7 @@ class Employee(Base):
     status = Column(Enum(EmployeeStatus), nullable=False)
     role = Column(Enum(EmployeeRole), nullable=False)
     create_date = Column(DateTime, server_default=func.now())
-    update_date = Column(DateTime, nullable=True, server_onupdate=func.now())
+    update_date = Column(DateTime, nullable=True, onupdate=func.now())
 
     name = Column(String(50), nullable=False)
     email = Column(String(50), unique=True, nullable=False)

@@ -1,18 +1,5 @@
-from fastapi import HTTPException
-from pydantic import BaseModel, model_validator, conint
-from datetime import date
+from pydantic import BaseModel, conint
 
 class DTKQuery(BaseModel):
-    start_date: date
-    end_date: date
-    page: conint(ge=0) = 1
-    page_size: conint(ge=10, le=15) = 10
-
-    @model_validator(mode='after')
-    def validate_dates(self) -> 'DTKQuery':
-        if self.start_date > self.end_date:
-            raise HTTPException(
-                status_code=400,
-                detail="start_date must be earlier than or equal to end_date",
-            )
-        return self
+    year: conint(gt=2000)
+    month: conint(gt=0, lt=13)
