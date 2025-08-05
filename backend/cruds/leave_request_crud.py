@@ -1,9 +1,6 @@
-from fastapi import HTTPException
-
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, extract
-from datetime import date, timedelta
+from sqlalchemy import select, func
 
 from cruds.balance_crud import update_balance_crud
 from entities import LeaveRequest, Employee, Balance, DayTimekeeping

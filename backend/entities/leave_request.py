@@ -15,7 +15,7 @@ class LeaveRequest(Base):
     type = Column(Enum(RequestType), nullable=False)
     detail = Column(String(255), nullable=True)
     status = Column(Enum(RequestStatus), nullable=False, server_default=RequestStatus.PENDING)
-    update_date = Column(Date, nullable=True, server_onupdate=func.now())
+    update_date = Column(Date, nullable=True, onupdate=func.now())
 
     employee_id = Column(
         Integer, ForeignKey("employee.id", ondelete="CASCADE"), nullable=False)

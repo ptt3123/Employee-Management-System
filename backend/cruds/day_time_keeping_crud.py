@@ -1,4 +1,4 @@
-from sqlalchemy import update, func
+from sqlalchemy import update, func, extract
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import time, timedelta, datetime
@@ -112,48 +112,39 @@ async def get_today_dtk(employee_id: int, db: AsyncSession):
 
         return entry
 
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
+
     except SQLAlchemyError as e:
         await db.rollback()
         print(f"Check-in error: {e}")
         raise e
 
 async def get_dtk_history(
-        employee_id: int, page: int, page_size: int, start_date: date, end_date: date, db: AsyncSession):
+        employee_id: int, year: int, month: int, db: AsyncSession):
 
     try:
-        offset = (page - 1) * page_size
-
-        # Fetch paginated data
+        # Filter by year and month
         data_query = select(DayTimekeeping).where(
             DayTimekeeping.employee_id == employee_id,
-            DayTimekeeping.date >= start_date,
-            DayTimekeeping.date <= end_date
-        ).offset(offset).limit(page_size)
+            extract('year', DayTimekeeping.date) == year,
+            extract('month', DayTimekeeping.date) == month
+        )
 
         data_result = await db.execute(data_query)
         records = data_result.scalars().all()
 
-        # Count total matches
-        count_query = select(func.count()).where(
-            DayTimekeeping.employee_id == employee_id,
-            DayTimekeeping.date >= start_date,
-            DayTimekeeping.date <= end_date
-        )
-        count_result = await db.execute(count_query)
-        total_count = count_result.scalar_one()
+        return records
 
-        return {
-            "data": records,
-            "page": page,
-            "page_size": page_size,
-            "total_page": (total_count + page_size - 1) // page_size
-        }
-
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
 
     except SQLAlchemyError as e:
-        await db.rollback()
-        print(f"Check-in error: {e}")
-        raise e
+            await db.rollback()
+            print(f"Check-in error: {e}")
+            raise e
 
 async def delete_registered_schedule_next_week(employee_id: int, db: AsyncSession) -> bool:
     today = date.today()

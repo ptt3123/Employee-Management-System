@@ -5,6 +5,9 @@ from apis.leave_request_apis.router import leave_request_router
 from apis.Balance.router import balance_router
 from apis.day_time_keeping_apis.router import dtk_router
 from apis.team_apis.router import team_router
+from apis.salary_apis.router import salary_router
+from apis.month_time_keeping_apis.router import mtk_router
+from apis.salary_history_apis.router import salary_history_router
 
 router = APIRouter()
 
@@ -14,3 +17,6 @@ router.include_router(leave_request_router)
 router.include_router(dtk_router)
 router.include_router(team_router)
 router.include_router(balance_router)
+router.include_router(salary_router)
+router.include_router(mtk_router)
+router.include_router(salary_history_router)

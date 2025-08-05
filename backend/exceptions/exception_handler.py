@@ -60,6 +60,15 @@ def has_registered_next_week_handler(request: Request, exc: Exception) -> Respon
         content={'success': False, "error": exc.message}
     )
 
+def has_registered_salary_handler(request: Request, exc: Exception) -> Response:
+    if not isinstance(exc, HasRegisteredNextWeekException):
+        logger.error(f"Unexpected exception in has_registered_salary_handler: {str(exc)}")
+        return JSONResponse(status_code=500, content={'success': False, "error": "Internal Server Error"})
+    return JSONResponse(
+        status_code=400,
+        content={'success': False, "error": exc.message}
+    )
+
 def no_schedule_registered_handler(request: Request, exc: Exception) -> Response:
     if not isinstance(exc, NoScheduleRegisteredException):
         logger.error(f"Unexpected exception in no_schedule_registered_handler: {str(exc)}")

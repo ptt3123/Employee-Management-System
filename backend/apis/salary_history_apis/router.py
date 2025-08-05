@@ -1,0 +1,11 @@
+from fastapi import APIRouter
+
+from apis.salary_history_apis.read_my_salary_history import read_my_salary_history_router
+from apis.salary_history_apis.read_employee_salary_history import read_employee_salary_history_router
+from apis.salary_history_apis.confirm_current_month_salary_history import update_current_salary_history_router
+
+salary_history_router = APIRouter()
+
+salary_history_router.include_router(read_my_salary_history_router)
+salary_history_router.include_router(read_employee_salary_history_router)
+salary_history_router.include_router(update_current_salary_history_router)

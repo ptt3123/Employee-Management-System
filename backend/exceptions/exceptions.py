@@ -9,6 +9,11 @@ class HasRegisteredNextWeekException(Exception):
         self.message = message
         super().__init__(message)
 
+class HasRegisteredSalaryException(Exception):
+    def __init__(self, message: str = "Can not register new Salary again"):
+        self.message = message
+        super().__init__(message)
+
 class NoScheduleRegisteredException(Exception):
     def __init__(self, message: str = "No schedule registered for today"):
         self.message = message
@@ -33,10 +38,10 @@ class ObjectNotFoundException(Exception):
     def __init__(self, not_found_object: Optional[str] = None):
         if not_found_object is not None:
             self.not_found_object = not_found_object
-            self.message = f"Object {not_found_object} not found"
-        else: self.message = "not found"
+            message = f"Object {not_found_object} not found"
+        else: message = "not found"
 
-        super().__init__(self.message)
+        super().__init__(message)
 
 class InvalidPaginationException(Exception):
     def __init__(self, message: str = "Page and page_size must be greater than 0"):
@@ -50,8 +55,8 @@ class FieldValueExistsException(Exception):
             parts.append(f'Email "{email}"')
         if phone_number:
             parts.append(f'Phone number "{phone_number}"')
-        self.message = " and ".join(parts) + " already exists"
-        super().__init__(self.message)
+        message = " and ".join(parts) + " already exists"
+        super().__init__(message)
 
 class UnauthorizedException(Exception):
     def __init__(self, message: str = "Unauthorized"):

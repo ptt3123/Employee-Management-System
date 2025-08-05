@@ -7,11 +7,13 @@ from enums import RequestType, RequestStatus, EmployeeStatus, SortValue
 
 
 class LeaveRequestBase(BaseModel):
+
     class Config:
         from_attributes = True
 
 
 class LeaveRequestCreate(LeaveRequestBase):
+
     start_date: date
     end_date: date
     type: Optional[RequestType]

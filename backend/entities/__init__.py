@@ -6,3 +6,4 @@ from .leave_request import LeaveRequest
 from .month_time_keeping import MonthTimeKeeping
 from .salary import Salary
 from .team import Team
+from .salary_history import SalaryHistory

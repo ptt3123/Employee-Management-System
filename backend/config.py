@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     remaining_annual_leave_days: int = 12
 
+    # setting for calculate employee's salary
+    PENALTY_PER_VIOLATION: int = 50000
+    FULL_ATTENDANCE_BONUS: int = 1000000
+    STANDARD_HOURS: int = 176
+    OVERTIME_RATE: int = 30000
+
     @computed_field
     @property
     def SYNC_SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn:
