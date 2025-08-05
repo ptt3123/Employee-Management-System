@@ -100,7 +100,13 @@ async def calculate_employee_current_monthly_attendance(employee_id: int, db: As
     row = result.first()
 
     if row is None:
-        return None
+        return {
+            "employee_id": employee_id,
+            "working_days": 0,
+            "working_hours": 0.0,
+            "checkin_late": 0,
+            "checkout_early": 0,
+        }
 
     return {
         "employee_id": row.employee_id,

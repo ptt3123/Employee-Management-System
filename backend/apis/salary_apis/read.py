@@ -16,4 +16,4 @@ async def read_salary(
 
     result = await read_by_employee_id(employee_id, db)
 
-    return {"data": result}
+    return result
