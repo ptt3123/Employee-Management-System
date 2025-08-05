@@ -40,10 +40,17 @@ async def update(form: SalaryCreateForm, db: AsyncSession):
         salary_record = await read_by_employee_id(form.employee_id, db)
 
         # Update fields
-        salary_record.salary = form.salary
-        salary_record.allowance = form.allowance
-        salary_record.reward = form.reward
-        salary_record.detail = form.detail
+        if form.salary:
+            salary_record.salary = form.salary
+
+        if form.allowance:
+            salary_record.allowance = form.allowance
+
+        if form.reward:
+            salary_record.reward = form.reward
+
+        if form.detail:
+            salary_record.detail = form.detail
 
         await db.commit()
 
@@ -51,7 +58,3 @@ async def update(form: SalaryCreateForm, db: AsyncSession):
         await db.rollback()
         print(f"Integrity error: {e}")
         raise EmployeeNotFoundException()
-
-
-
-

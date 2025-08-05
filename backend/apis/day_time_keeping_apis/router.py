@@ -7,6 +7,7 @@ from apis.day_time_keeping_apis.checkout import checkout_router
 from apis.day_time_keeping_apis.get_employee_dtk_history import get_employee_dtk_history_router
 from apis.day_time_keeping_apis.get_my_dtk_history import get_my_dtk_history_router
 from apis.day_time_keeping_apis.delete_my_registered_dtk import delete_router
+from apis.day_time_keeping_apis.get_current_month_info import get_current_month_info_router
 
 dtk_router = APIRouter(prefix="/dtk", tags=["Date_time_keeping"])
 
@@ -18,3 +19,4 @@ dtk_router.include_router(checkout_router)
 dtk_router.include_router(get_employee_dtk_history_router)
 dtk_router.include_router(get_my_dtk_history_router)
 dtk_router.include_router(delete_router)
+dtk_router.include_router(get_current_month_info_router)

@@ -112,6 +112,10 @@ async def get_today_dtk(employee_id: int, db: AsyncSession):
 
         return entry
 
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
+
     except SQLAlchemyError as e:
         await db.rollback()
         print(f"Check-in error: {e}")
@@ -132,6 +136,10 @@ async def get_dtk_history(
         records = data_result.scalars().all()
 
         return records
+
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
 
     except SQLAlchemyError as e:
             await db.rollback()

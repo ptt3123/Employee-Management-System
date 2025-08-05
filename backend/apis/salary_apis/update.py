@@ -14,7 +14,6 @@ async def update_salary(
         infor=Depends(get_admin_role),
         db: AsyncSession = Depends(get_db)
 ):
-    employee_id = int(infor.id)
 
     await update(form, db)
 
