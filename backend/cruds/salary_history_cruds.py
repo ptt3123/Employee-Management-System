@@ -37,6 +37,7 @@ async def update_confirm_date_of_current_salary_history(employee_id: int, db: As
     today = datetime.now()
 
     entry = await get_salary_history(employee_id, today.year, today.month - 1, db)
+
     if not entry:
         raise ObjectNotFoundException(f"Salary History of employee {employee_id}")
 
