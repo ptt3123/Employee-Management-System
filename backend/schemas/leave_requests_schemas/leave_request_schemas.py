@@ -67,8 +67,8 @@ class AdminGetLeaveRequests(BaseModel):
     end_date: Optional[date] = None
     type: Optional[RequestType] = None
     leave_request_status: Optional[RequestStatus] = RequestStatus.PENDING
-    sort_by: Optional[str] = start_date,
-    sort_value: Optional[SortValue] = SortValue.DESC
+    sort_by: Optional[str] = name,
+    sort_value: Optional[SortValue] = SortValue.ASC
     page: int = 1
     page_size: int = 10
 

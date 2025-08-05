@@ -6,8 +6,8 @@ from sqlalchemy import select, func, extract
 from datetime import date, timedelta
 
 from cruds.balance_crud import update_balance_crud
-from entities import LeaveRequest, Employee, Balance
-from enums import RequestStatus, EmployeeRole, EmployeeStatus
+from entities import LeaveRequest, Employee, Balance, DayTimekeeping
+from enums import RequestStatus, EmployeeRole, EmployeeStatus, SortValue
 from exceptions.exceptions import ObjectNotFoundException, RequestInProcessingException, InvalidPaginationException, \
     UnauthorizedException
 from schemas.leave_requests_schemas.leave_request_schemas import LeaveRequestCreate, LeaveRequestUpdate, \
@@ -89,7 +89,10 @@ async def admin_get_leave_request_crud(
         (Balance.employee_id == Employee.id)
         & (Balance.year == (params.start_date.year if params.start_date else date.today().year))
         , isouter=True
-    ).where(LeaveRequest.status == params.leave_request_status)
+    ).where(
+        LeaveRequest.status == params.leave_request_status
+    )
+
 
     if params.name:
         stmt = stmt.where(
@@ -110,12 +113,30 @@ async def admin_get_leave_request_crud(
     total_leave_requests = (await db.execute(total_leave_requests_query)).scalar()
     total_pages = (total_leave_requests + params.page_size - 1) // params.page_size
 
+    if hasattr(Employee, params.sort_by):
+        sort_column = getattr(Employee, params.sort_by)
+        if params.sort_value == SortValue.DESC:
+            stmt = stmt.order_by(sort_column.desc())
+        elif params.sort_value == SortValue.ASC:
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.asc())
+
+    if hasattr(LeaveRequest, params.sort_by):
+        sort_column = getattr(LeaveRequest, params.sort_by)
+        if params.sort_value == SortValue.DESC:
+            stmt = stmt.order_by(sort_column.desc())
+        elif params.sort_value == SortValue.ASC:
+            stmt = stmt.order_by(sort_column.asc())
+        else:
+            stmt = stmt.order_by(sort_column.asc())
+
     skip = (params.page - 1) * params.page_size
     stmt = stmt.offset(skip).limit(params.page_size)
 
     result = await db.execute(stmt)
     leave_quests_result = result.all()
-
+    print(stmt)
     leave_quests = []
     for request, name, email, phone_number, address, position, balance in leave_quests_result:
         leave_quests.append(
@@ -139,6 +160,22 @@ async def admin_get_leave_request_crud(
         'leave_requests': leave_quests
     }
 
+async def get_leave_request_period_of_date(
+        start_date: date,
+        end_date: date,
+        employee_id: int,
+        db: AsyncSession
+    ):
+    stmt = select(LeaveRequest).where(
+        LeaveRequest.employee_id == employee_id,
+        start_date <= LeaveRequest.end_date,
+        end_date >= LeaveRequest.start_date
+    )
+
+    result = await db.execute(stmt)
+    leave_requests = result.scalars().all()
+
+    return leave_requests
 
 async def get_quantity_rest_day_crud(
     employee_id: int,
