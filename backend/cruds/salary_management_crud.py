@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from entities import DayTimekeeping, MonthTimeKeeping, Salary, SalaryHistory
 from database import SessionLocal
@@ -73,3 +74,38 @@ async def calculate_monthly_attendance():
                 session.add(salary_history)
 
         await session.commit()
+
+async def calculate_employee_current_monthly_attendance(employee_id: int, db: AsyncSession):
+    today = date.today()
+    first_day_this_month = date(today.year, today.month, 1)
+
+    stmt = select(
+        DayTimekeeping.employee_id,
+        func.count(DayTimekeeping.date).label("working_days"),
+        func.sum(
+            func.extract('epoch', DayTimekeeping.checkout - DayTimekeeping.checkin) / 3600
+        ).label("working_hours"),
+        func.count(DayTimekeeping.is_checkin_late).filter(DayTimekeeping.is_checkin_late == True).label("checkin_late"),
+        func.count(DayTimekeeping.is_checkout_early).filter(DayTimekeeping.is_checkout_early == True).label(
+            "checkout_early")
+    ).where(
+        DayTimekeeping.employee_id == employee_id,
+        DayTimekeeping.date >= first_day_this_month,
+        DayTimekeeping.date <= today,
+        DayTimekeeping.checkin.isnot(None),
+        DayTimekeeping.checkout.isnot(None)
+    ).group_by(DayTimekeeping.employee_id)
+
+    result = await db.execute(stmt)
+    row = result.first()
+
+    if row is None:
+        return None
+
+    return {
+        "employee_id": row.employee_id,
+        "working_days": row.working_days,
+        "working_hours": round(row.working_hours, 1),
+        "checkin_late": row.checkin_late,
+        "checkout_early": row.checkout_early,
+    }

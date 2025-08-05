@@ -112,6 +112,10 @@ async def get_today_dtk(employee_id: int, db: AsyncSession):
 
         return entry
 
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
+
     except SQLAlchemyError as e:
         await db.rollback()
         print(f"Check-in error: {e}")
@@ -133,10 +137,14 @@ async def get_dtk_history(
 
         return records
 
+    except IntegrityError as e:
+        await db.rollback()
+        raise EmployeeNotFoundException
+
     except SQLAlchemyError as e:
-            await db.rollback()
-            print(f"Check-in error: {e}")
-            raise e
+        await db.rollback()
+        print(f"Check-in error: {e}")
+        raise e
 
 async def delete_registered_schedule_next_week(employee_id: int, db: AsyncSession) -> bool:
     today = date.today()
