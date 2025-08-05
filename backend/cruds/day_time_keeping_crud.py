@@ -142,9 +142,9 @@ async def get_dtk_history(
         raise EmployeeNotFoundException
 
     except SQLAlchemyError as e:
-        await db.rollback()
-        print(f"Check-in error: {e}")
-        raise e
+            await db.rollback()
+            print(f"Check-in error: {e}")
+            raise e
 
 async def delete_registered_schedule_next_week(employee_id: int, db: AsyncSession) -> bool:
     today = date.today()

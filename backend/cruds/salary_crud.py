@@ -58,7 +58,3 @@ async def update(form: SalaryCreateForm, db: AsyncSession):
         await db.rollback()
         print(f"Integrity error: {e}")
         raise EmployeeNotFoundException()
-
-
-
-
